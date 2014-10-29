@@ -2,6 +2,7 @@
 #define CS488_IMAGE_HPP
 
 #include <string>
+#include <zlib.h>
 
 /** An image, consisting of a rectangle of floating-point elements.
  * This class makes it easy to read PNG files and the like from

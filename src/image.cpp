@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cmath>
 #include <png.h>
+#include <zlib.h>
 #include <sstream>
 
 Image::Image()
@@ -80,7 +81,7 @@ bool Image::savePng(const std::string& filename)
   FILE* fout = std::fopen(filename.c_str(), "wb");
   png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   png_infop info_ptr = png_create_info_struct(png_ptr);
-  setjmp(png_ptr->jmpbuf);
+  setjmp(png_jmpbuf(png_ptr));
 
   /* Setup PNG I/O */
   png_init_io(png_ptr, fout);
