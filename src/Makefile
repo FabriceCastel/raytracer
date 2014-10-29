@@ -1,8 +1,9 @@
 SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
 DEPENDS = $(SOURCES:.cpp=.d)
-LDFLAGS = $(shell pkg-config --libs lua5.1) -llua -lpng
-CPPFLAGS = $(shell pkg-config --cflags lua5.1)
+#LDFLAGS = $(shell pkg-config --libs lua5.1) -llua -lpng
+LDFLAGS = -llua -lpng
+#CPPFLAGS = $(shell pkg-config --cflags lua5.1)
 CXXFLAGS = $(CPPFLAGS) -W -Wall -g -O3
 CXX = g++
 MAIN = rt

@@ -2,3 +2,4 @@
 *.d
 rt
 src/rt
+*.png
