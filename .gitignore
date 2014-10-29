@@ -2,4 +2,4 @@
 *.d
 rt
 src/rt
-*.png
+src/*.png
