@@ -1,5 +1,6 @@
 #include "a4.hpp"
 #include "image.hpp"
+#include "mastertempo.hpp"
 
 void printProgBar( int percent ){
   std::string bar;
@@ -35,7 +36,15 @@ void a4_render(// What to render
                const std::list<Light*>& lights
                )
 {
-  int SSAAFactor = 4;
+
+
+	//MasterTempo masterTempo = MasterTempo("../data/1.mid");
+	//masterTempo.printMidiEvents();
+	//exit(1);
+
+
+
+  int SSAAFactor = 1;
   height *= SSAAFactor;
   width *= SSAAFactor;
 
