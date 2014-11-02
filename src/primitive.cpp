@@ -95,20 +95,26 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
   rayV.normalize(); // just in case
   Vector3D v = rayP - m_pos;
 
-  if((-1 * v).dot(rayV) <= 0) return NULL; // geometry is behind the ray
+  //if((-1 * v).dot(rayV) <= m_radius) return NULL; // geometry is behind the ray
  
   double a = rayV.dot(rayV);
   double b = 2*(rayV.dot(v));
   double c = v.dot(v) - (m_radius * m_radius);
 
-  if(rayV.dot(v)*rayV.dot(v) - v.dot(v) + m_radius*m_radius < 0) return NULL;
+
+  //if(rayV.dot(v)*rayV.dot(v) - v.dot(v) + m_radius*m_radius < 0) return NULL;
 
   double roots[2] = {0.0, 0.0};
   int rootCount = quadraticRoots(a, b, c, roots);
 
+  //std::cout << "\nRoots: " << rootCount;
+
+  if(rootCount == 0) return NULL;
+
   Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
   *ans = Intersection(Point3D(0.0, 0.0, 0.0), Vector3D(0.0, 0.0, 0.0), NULL);
   
+
   if(rootCount == 1 && roots[0] > 0){
     Point3D p = rayP + roots[0]*rayV;
     ans->setPoint(p);
@@ -122,9 +128,12 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
   ap = Point3D(-1*ap[0], -1*ap[1], -1*ap[2]);
   bp = Point3D(-1*bp[0], -1*bp[1], -1*bp[2]);
 
-  if(roots[0] < 0 && roots[1] < 0) return NULL;
+  double epsilon = 0.0001;
+  if(roots[0] < epsilon && roots[1] < epsilon) return NULL;
 
-  if(roots[0] < roots[1] && roots[0] > 0){
+  //std::cout << "\n0: " << roots[0] << "\n1: " << roots[1];
+
+  if((roots[0] < roots[1] && roots[0] > 0) || roots[1] < 0.0001){
     ans->setPoint(ap);
     Vector3D n = ap - m_pos;
     n.normalize();
@@ -135,5 +144,14 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
     n.normalize();
     ans->setNormal(n);
   }
+
+  //if(false) return ans; // IF THE OBJECT IS NOT TRANSPARENT
+
+  ans->setRefraction(true);
+  Vector3D rf = refraction(1.6, ans->getNormal(), rayP, ans->getPoint());
+  ans->setRefAngle(rf);
+
+  //std::cout << "\nOrigin: " << rayP << "\nNormal: " << ans->getNormal() << "\nIntersection point: " << ans->getPoint() << "\nRefraction Angle: " << rf;
+
   return ans;
 }

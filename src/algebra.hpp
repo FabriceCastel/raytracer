@@ -171,6 +171,12 @@ public:
                     v_[0]*other[1] - v_[1]*other[0]);
   }
 
+  Vector3D cap(double max){
+    return Vector3D(std::min(max, v_[0]),
+      std::min(max, v_[1]),
+      std::min(max, v_[2]));
+  }
+
 private:
   double v_[3];
 };
@@ -491,5 +497,6 @@ inline std::ostream& operator <<(std::ostream& os, const Colour& c)
 }
 
 double intersectPlane(Point3D p, Vector3D n, Point3D planeP, Vector3D planeN);
+Vector3D refraction(double refIdx, Vector3D normal, Point3D rayOrigin, Point3D point);
 
 #endif // CS488_ALGEBRA_HPP

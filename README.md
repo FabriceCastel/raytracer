@@ -3,10 +3,8 @@ Fab's Raytracer
 
 ![Alt text](/sample.png?raw=true "Sample render")
 
-A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014
+A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
 
-Original build compiled on an Ubuntu machine, ported over to OSX
+# November 2nd 2014 - 6:00pm
 
-Sorry about the messy code, I'll fix it up as I keep working on it :$
-
-Feedback and bug reports are welcome! :)
+I've added refraction to the sphere objects, can now emulate glass-like surfaces

@@ -3,3 +3,4 @@
 rt
 src/rt
 src/*.png
+*DS_Store

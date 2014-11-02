@@ -14,6 +14,21 @@
 
 #include "algebra.hpp"
 
+Vector3D refraction(double refIdx, Vector3D normal, Point3D rayOrigin, Point3D point){
+  Vector3D ray = point - rayOrigin;
+  ray.normalize();
+  double refx = 1.0;
+  if(normal.dot(ray) < 0){ // the ray is going INTO the object
+    refx = 1.0 / refIdx;
+  } else {
+    refx = refIdx;
+    normal = -1 * normal;
+  }
+  double rootC = sqrt(1 - refx * refx * (1 - (normal.dot(-1 * ray))));
+  Vector3D transmissive = (refx * (normal.dot(-1 * ray)) - rootC) * normal - (refx * -1 * ray);
+  return transmissive;
+}
+
 double intersectPlane(Point3D p, Vector3D v, Point3D planeP, Vector3D planeN){
   if(std::abs(v.dot(planeN)) < 0.000001)
     return 0.0; // the plane and ray are parallel

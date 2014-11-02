@@ -8,18 +8,27 @@
 class Intersection {
 public:
   Intersection(Point3D iPoint, Vector3D normal, Material* material)
-    : p(iPoint), n(normal), mat(material){};
+    : p(iPoint), n(normal), mat(material){
+      refraction = false;
+    };
   virtual ~Intersection();
   Point3D getPoint(){ return p; };
   Vector3D getNormal() { return n; };
   Material* getMaterial() { return mat; };
+  bool isRefraction(){return refraction;};
+  Vector3D getRefAngle(){return refAngle;};
+
   void setPoint(Point3D point){ p = point; };
   void setNormal(Vector3D normal){ n = normal; };
   void setMaterial(Material* material){ mat = material; };
+  void setRefraction(bool ref){refraction = ref;};
+  void setRefAngle(Vector3D r){refAngle = r;};
+
 private:
   Point3D p;
-  Vector3D n;
+  Vector3D n, refAngle;
   Material* mat;
+  bool refraction;
 };
 
 

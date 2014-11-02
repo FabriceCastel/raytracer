@@ -28,10 +28,12 @@ Intersection* SceneNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans)
       //std::cout << "pt: " << pt << " | pc: " << pc << " | ptn: " << ptn << " | pcn: " << pcn << "\n";
       //if(ptn != pcn) exit(1);
       if(ptn < pcn){
-	col->setPoint(tcol->getPoint());
-	col->setNormal(tcol->getNormal());
-	col->setMaterial(tcol->getMaterial());
-	free(tcol);
+      	col->setPoint(tcol->getPoint());
+      	col->setNormal(tcol->getNormal());
+      	col->setMaterial(tcol->getMaterial());
+        col->setRefraction(tcol->isRefraction());
+        if(tcol->isRefraction()) col->setRefAngle(tcol->getRefAngle());
+	       free(tcol);
       }
     }
     c++;
