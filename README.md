@@ -7,7 +7,7 @@ Objectives:
 2. Volumetric lighting
 3. Height mapping
 4. Depth of field
-5. Refraction
+5. ~~Refraction~~
 6. Blinn-Phong lighting (to replace current Phong model)
 7. Generate animation frames based off MIDI input
 8. Particle system
