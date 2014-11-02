@@ -2,6 +2,7 @@ Fab's Raytracer
 ===============
 
 Objectives:
+
 1. Texture mapping
 2. Volumetric lighting
 3. Height mapping
