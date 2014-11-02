@@ -96,8 +96,7 @@ bool MasterTempo::decodeMidi(){
 		}
 
 		if(MThd == 0){
-			//cout << "MThd chunk\n";
-			// skip over header chunk
+			// Check that the format type is 0 (single track)
 			for(int i = 0; i < chunkLength; i++){
 				file >> in;
 				b = in;

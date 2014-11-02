@@ -20,4 +20,8 @@ void a4_render(// What to render
                const std::list<Light*>& lights
                );
 
+
+Vector3D shade(Vector3D fc, std::list<Light*> lights, Intersection* col, Point3D eye, SceneNode* root);
+
+
 #endif
