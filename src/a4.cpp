@@ -44,7 +44,7 @@ void a4_render(// What to render
 
 
 
-	int SSAAFactor = 4;
+	int SSAAFactor = 2;
 	height *= SSAAFactor;
 	width *= SSAAFactor;
 
@@ -95,12 +95,46 @@ void a4_render(// What to render
 				fc.cap(1.0);
 
 				if(rayWasRefracted){
-					double transparancy = 0.6;
+					double opacityFactor = initHit->getNormal().dot(v);
+					if(opacityFactor < 0) opacityFactor *= -1;
+
+					if(opacityFactor > 1){
+						std::cout << "opacityFactor = " << opacityFactor << "\n";
+						exit(1);
+					}
+
+					opacityFactor = 1 - opacityFactor;
+					opacityFactor = pow(opacityFactor, 3);
+					opacityFactor /= 2.0;
+					//opacityFactor = 1 - opacityFactor;
+					
+
+					double transparancy = 0.9 - opacityFactor;//300.0 / glassTraversed;
 					Colour glassKD = initHit->getMaterial()->getKD();
-					Vector3D glassSpec = Vector3D(glassKD.R(), glassKD.G(), glassKD.B());
-					glassSpec = shade(glassSpec, lights, initHit, eye, root);
-					glassSpec.cap(1.0);
-					fc = (transparancy*fc) + ((1.0-transparancy)*glassSpec);
+					Vector3D glassDiff = Vector3D(glassKD.R(), glassKD.G(), glassKD.B());
+					Vector3D glassSpec = Vector3D(0.0, 0.0, 0.0);
+					glassDiff = shade(glassDiff, lights, initHit, eye, root);
+
+					//
+					// Hacky way of calculating ONLY the specular part (use black diffuse and white spec)
+					//
+					Intersection glassSpecI = (*initHit);
+					const Colour black = Colour(0.0, 0.0, 0.0);
+					const Colour white = Colour(1.0, 1.0, 1.0);
+					double shine = initHit->getMaterial()->getShininess();
+					Material* onlySpec = (Material*) new PhongMaterial(black, white, shine);
+					glassSpecI.setMaterial(onlySpec);
+					glassSpec = shade(glassSpec, lights, &glassSpecI, eye, root);
+					delete(onlySpec);
+					//
+					// </hack>
+					//
+
+					glassDiff.cap(1.0);
+					fc = (transparancy*fc) + ((1.0-transparancy)*glassDiff) + glassSpec;
+
+					// Sphere has radius 200
+					//fc = (1.0 / (glassTraversed / 400.0)) * Vector3D(1.0, 1.0, 1.0);
 				}
 
 				rbuffer[rbufferindex++] = fc[0];
