@@ -2,7 +2,7 @@
 
 black = gr.material({0.1, 0.1, 0.1}, {1.0, 1.0, 1.0}, 70)
 white = gr.material({1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, 0)
-glass = gr.material({0.4, 0.7, 0.6}, {0.7, 1.0, 0.8}, 400)
+glass = gr.material({0.0, 0.4, 0.3}, {0.7, 1.0, 0.8}, 400)
 
 red = gr.material({1.0, 0.0, 0.0}, {0.5, 0.7, 0.5}, 30)
 orange = gr.material({1.0, 0.5, 0.0}, {0.5, 0.7, 0.5}, 40)
@@ -22,9 +22,13 @@ wall = gr.nh_box('wall', {-3500, -500, -10000}, 7000)
 scene_root:add_child(wall)
 wall:set_material(white)
 
-box = gr.nh_box('box', {60, -60, -900}, 400)
+box = gr.nh_box('box', {80, -50, -900}, 400)
 scene_root:add_child(box)
 box:set_material(red)
+
+box2 = gr.nh_box('box2', {-350, -90, -700}, 300)
+scene_root:add_child(box2)
+box2:set_material(indigo)
 
 s1 = gr.nh_sphere('s1', {0, 0, -100}, 200)
 scene_root:add_child(s1)
