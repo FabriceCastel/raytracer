@@ -104,12 +104,13 @@ void a4_render(// What to render
 					}
 
 					opacityFactor = 1 - opacityFactor;
-					opacityFactor = pow(opacityFactor, 3);
+					opacityFactor = pow(opacityFactor, 3) + pow(opacityFactor + 0.1, 5);
 					opacityFactor /= 2.0;
+					if(opacityFactor > 1) opacityFactor = 1;
 					//opacityFactor = 1 - opacityFactor;
 					
 
-					double transparancy = 0.9 - opacityFactor;//300.0 / glassTraversed;
+					double transparancy = 0.9 * (1.0 - opacityFactor);//300.0 / glassTraversed;
 					Colour glassKD = initHit->getMaterial()->getKD();
 					Vector3D glassDiff = Vector3D(glassKD.R(), glassKD.G(), glassKD.B());
 					Vector3D glassSpec = Vector3D(0.0, 0.0, 0.0);

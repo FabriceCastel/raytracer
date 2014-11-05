@@ -91,9 +91,76 @@ Intersection* NonhierBox::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4
   return ans;
 }
 
+double heightField(double lat, double lng){
+  return lat / 20.0;
+}
+
+Intersection* intersectHeightMap(Point3D rayP, Vector3D rayV, Matrix4x4 trans, Point3D m_pos, double m_radius){
+  // Translate everything so that the sphere is centred on the origin
+  Point3D eye = rayP + (Point3D(0.0, 0.0, 0.0) - m_pos);
+  Point3D sphereCentre = Point3D(0.0, 0.0, 0.0);
+  Vector3D ray = rayV;
+
+  // The threshold for when to stop the stepping algorithm requires an epsilon for the degree of precision
+  double epsilon = 0.001;
+
+  // max number of steps to take before bailing out?
+  int maxSteps = 50;
+
+  // Algorithm:
+  //
+  // for(each visibility line)
+  // 1. Calculate the first solution at the leading edge
+  // 2. While(visibility line not fully processed)
+  //    a. Get next inside sample point or create extra sample if beyond trailing edge
+  //    b. Make the eye ray for the sample
+  //    c. While(close enough solution hasn't been found)
+  //         i. Step horizontally from the previous solution to the eye ray
+  //        ii. If(no height field)
+  //            - Visibility ends. Process trailing edge sol'n and reiterate code for the next line(wtf does that even mean?)
+  //            Else
+  //            - Step vertically to height field. This is now the sol'n.
+  //       iii. If(horizontal step was smaller than the threshold)
+  //            - output the sol'n and goto 2.a.
+  //            Else if(horizontal step was a reverse)
+  //            - find reverse sol'n, output it and goto 2.a.
+  //            Else
+  //            - goto 2.c.
+
+
+  // Take a deep breath... let's do this...
+
+  // A point on the sphere is expressed in polar coordinates (lat, lng)
+  // The centre of the sphere lies at distance p from the eye. Gee, isn't that a helpful varialbe name >_>
+  double p = abs((eye - sphereCentre).normalize());
+  
+
+
+  // 1. Calculate the first solution at the leading edge
+  // Locate the CoPv from the geometry of the underlying surface and view position
+  Point3D CoPs; // the point closest to the eye on the underlying (sphere) surface
+  Point3D CoPv; // CoPs projected onto the view plane
+
+  // Calculate CoPs...
+  Vector3D centreToSurface = eye - sphereCentre;
+  centreToSurface.normalize();
+  CoPs = sphereCentre + m_radius*centreToSurface;
+
+
+
+  return NULL;
+
+  Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
+  *ans = Intersection(Point3D(0.0, 0.0, 0.0), Vector3D(0.0, 0.0, 0.0), NULL);
+
+  return ans;
+}
+
 Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans){
   rayV.normalize(); // just in case
   Vector3D v = rayP - m_pos;
+
+  //return intersectHeightMap(rayP, rayV, trans, m_pos, m_radius);
 
   //if((-1 * v).dot(rayV) <= m_radius) return NULL; // geometry is behind the ray
  
