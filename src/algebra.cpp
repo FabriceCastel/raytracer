@@ -13,6 +13,28 @@
 //---------------------------------------------------------------------------
 
 #include "algebra.hpp"
+#include <math.h>
+
+double xyToLat(double x, double y){
+  double lat = atan2(y, x);
+  if(isnan(lat)){
+    std::cerr << "\nERROR: Not a number: atan2(" << x << ", " << y << ")\n";
+    exit(1);
+  }
+  return lat;
+}
+
+double zrToLng(double z, double r){
+  if(z > r){
+    z = r; // fix numerical issues
+  }
+  double lng = std::acos(z/r);
+  if(isnan(lng)){
+    std::cerr << "\nERROR: Not a number: acos(" << z << ", " << r << ")\n";
+    exit(1);
+  }
+  return lng;
+}
 
 Vector3D refraction(double refIdx, Vector3D normal, Point3D rayOrigin, Point3D point){
   Vector3D ray = point - rayOrigin;

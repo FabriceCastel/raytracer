@@ -82,9 +82,9 @@ void a4_render(// What to render
       //if(TEST != 0) exit(1);
 
 			if(col == NULL){
-				rbuffer[rbufferindex++] = -0.3 + (double)y/height;
-				rbuffer[rbufferindex++] = 0.4 + 0.2*(double)x/width;
-				rbuffer[rbufferindex++] = 0.6;
+				rbuffer[rbufferindex++] = 0;//-0.3 + (double)y/height;
+				rbuffer[rbufferindex++] = 0;//0.4 + 0.2*(double)x/width;
+				rbuffer[rbufferindex++] = 0;//0.6;
 			} else {
 				Material *mat = col->getMaterial();
 				Colour kd = mat->getKD();
@@ -104,12 +104,13 @@ void a4_render(// What to render
 					}
 
 					opacityFactor = 1 - opacityFactor;
-					opacityFactor = pow(opacityFactor, 3);
+					opacityFactor = pow(opacityFactor, 3) + pow(opacityFactor + 0.1, 5);
 					opacityFactor /= 2.0;
+					if(opacityFactor > 1) opacityFactor = 1;
 					//opacityFactor = 1 - opacityFactor;
 					
 
-					double transparancy = 0.9 - opacityFactor;//300.0 / glassTraversed;
+					double transparancy = 0.9 * (1.0 - opacityFactor);//300.0 / glassTraversed;
 					Colour glassKD = initHit->getMaterial()->getKD();
 					Vector3D glassDiff = Vector3D(glassKD.R(), glassKD.G(), glassKD.B());
 					Vector3D glassSpec = Vector3D(0.0, 0.0, 0.0);
@@ -199,7 +200,7 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Intersection* col, Point3D
 			point[2] + fp2*normal[2]);
 		Vector3D pointToLight = lpos - point;
 		pointToLight.normalize();
-		Intersection* shadow = root->intersect(point2, pointToLight, Matrix4x4());
+		Intersection* shadow = NULL;//root->intersect(point2, pointToLight, Matrix4x4());
 		if(shadow == NULL){
 			Colour lightColour = (*I)->colour;
 			Vector3D lcol = Vector3D(lightColour.R(), lightColour.G(), lightColour.B());
