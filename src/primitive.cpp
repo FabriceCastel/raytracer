@@ -1,6 +1,9 @@
 #include "primitive.hpp"
 #include "polyroots.hpp"
 #include <float.h>
+#include <vector>
+
+using namespace std;
 
 Intersection::~Intersection(){}
 
@@ -92,7 +95,66 @@ Intersection* NonhierBox::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4
 }
 
 double heightField(double lat, double lng){
-  return lat / 20.0;
+  // lat [0, PI]
+  // lng [0, 2PI)
+  return sin(lat*3) * 50;
+}
+
+Vector3D getNormalAt(double lat, double lng, double r){
+  double epsilon = 0.00001;
+
+  if(lat < epsilon && lng < epsilon) return Vector3D(0, 0, 1);
+
+  // double t = lat;
+  // lat = lng;
+  // lng = t;
+  double h1 = heightField(lat, lng);
+  double x1 = (r+h1)*cos(lat)*sin(lng);
+  double y1 = (r+h1)*sin(lat)*sin(lng);
+  double z1 = (r+h1)*cos(lng);
+  Point3D p1 = Point3D(x1,y1,z1);
+
+  Matrix4x4 rot1 = Matrix4x4();
+  Matrix4x4 rot2 = Matrix4x4();
+
+
+  double lat2 = lat + epsilon;
+  double lng2 = lng;// + epsilon;
+  double lat3 = lat;// - epsilon;
+  double lng3 = lng + epsilon;
+
+  
+  double h2 = heightField(lat2, lng2);
+  double h3 = heightField(lat3, lng3);
+
+  // going from polar to world coordinates:
+  // x = r * cos(lat)sin(lng)
+  // y = r * sin(lat)sin(lng)
+  // z = r * cos(lng)
+
+  double x2 = (r+h2)*cos(lat2)*sin(lng2);
+  double y2 = (r+h2)*sin(lat2)*sin(lng2);
+  double z2 = (r+h2)*cos(lng2);
+  Point3D p2 = Point3D(x2,y2,z2);
+
+  double x3 = (r+h3)*cos(lat3)*sin(lng3);
+  double y3 = (r+h3)*sin(lat3)*sin(lng3);
+  double z3 = (r+h3)*cos(lng3);
+  Point3D p3 = Point3D(x3,y3,z3);
+
+  Vector3D n = (p2 - p1).cross(p3 - p1);
+  n.normalize();
+  n = -1*n;
+
+  if(n.normalize() == 0){
+    cout << "\nERROR\nNormal at: (" << lat/M_PI << "xPI" << ", " << lng/M_PI << "xPI" << ")\n";
+    cout << "Polar coordinates: \n" << lat2 << " - " << lng2 << "\n" << lat3 << " - " << lng3 << "\n";
+    cout << "Points\n" << p1 << "\n" << p2 << "\n" << p3 << "\n";
+    cout << "Normal: " << n << "\n";
+    exit(1);
+  }
+
+  return n;
 }
 
 Intersection* intersectHeightMap(Point3D rayP, Vector3D rayV, Matrix4x4 trans, Point3D m_pos, double m_radius){
@@ -100,58 +162,109 @@ Intersection* intersectHeightMap(Point3D rayP, Vector3D rayV, Matrix4x4 trans, P
   Point3D eye = rayP + (Point3D(0.0, 0.0, 0.0) - m_pos);
   Point3D sphereCentre = Point3D(0.0, 0.0, 0.0);
   Vector3D ray = rayV;
+  ray.normalize();
 
-  // The threshold for when to stop the stepping algorithm requires an epsilon for the degree of precision
-  double epsilon = 0.001;
+  double epsilon = 0.3;
+  int maxStepsBeforeBailout = 30;
+  double intermediateRayResolution = 0.1;//0.2;
+  double distanceBetweenEyeAndSphereCentre = abs((eye - sphereCentre).normalize());
 
-  // max number of steps to take before bailing out?
-  int maxSteps = 50;
-
-  // Algorithm:
-  //
-  // for(each visibility line)
-  // 1. Calculate the first solution at the leading edge
-  // 2. While(visibility line not fully processed)
-  //    a. Get next inside sample point or create extra sample if beyond trailing edge
-  //    b. Make the eye ray for the sample
-  //    c. While(close enough solution hasn't been found)
-  //         i. Step horizontally from the previous solution to the eye ray
-  //        ii. If(no height field)
-  //            - Visibility ends. Process trailing edge sol'n and reiterate code for the next line(wtf does that even mean?)
-  //            Else
-  //            - Step vertically to height field. This is now the sol'n.
-  //       iii. If(horizontal step was smaller than the threshold)
-  //            - output the sol'n and goto 2.a.
-  //            Else if(horizontal step was a reverse)
-  //            - find reverse sol'n, output it and goto 2.a.
-  //            Else
-  //            - goto 2.c.
-
-
-  // Take a deep breath... let's do this...
-
-  // A point on the sphere is expressed in polar coordinates (lat, lng)
-  // The centre of the sphere lies at distance p from the eye. Gee, isn't that a helpful varialbe name >_>
-  double p = abs((eye - sphereCentre).normalize());
-  
-
-
-  // 1. Calculate the first solution at the leading edge
-  // Locate the CoPv from the geometry of the underlying surface and view position
   Point3D CoPs; // the point closest to the eye on the underlying (sphere) surface
-  Point3D CoPv; // CoPs projected onto the view plane
-
-  // Calculate CoPs...
   Vector3D centreToSurface = eye - sphereCentre;
   centreToSurface.normalize();
   CoPs = sphereCentre + m_radius*centreToSurface;
 
+  // Get the distance between CoPs and its "sibling" on the eye ray
+  // This isn't too too important, it's to figure out how many intermediate rays
+  // we're going to use (bigger distance = more rays) to keep a consistant
+  // degree of precision
+  Vector3D eyeToCoPs = CoPs - eye;
+  double dEyeToCoPs = eyeToCoPs.normalize();
+  Point3D sibling = eye + (dEyeToCoPs * ray);
+  double CoPsToSibling = abs((CoPs - sibling).normalize());
+
+  vector<Vector3D> intermediateRays = vector<Vector3D>();
+  
+  int numberOfIntermediateRays = (int)(CoPsToSibling * intermediateRayResolution);
+  if(numberOfIntermediateRays < 2) numberOfIntermediateRays = 2;
+
+  for(int inter = 0; inter <= numberOfIntermediateRays; inter++){
+    double copW = ((float)inter) / ((float)numberOfIntermediateRays);
+    double rayW = 1.0 - copW;
+    double x = ray[0]*rayW + eyeToCoPs[0]*copW;
+    double y = ray[1]*rayW + eyeToCoPs[1]*copW;
+    double z = ray[2]*rayW + eyeToCoPs[2]*copW;
+    Vector3D nextRay = Vector3D(x, y, z);
+    nextRay.normalize();
+    intermediateRays.push_back(nextRay);
+  }
+  intermediateRays.push_back(eyeToCoPs);
 
 
-  return NULL;
+  Vector3D currentRay = intermediateRays.back();
+  double CoPsLat = xyToLat(CoPs[0], CoPs[1]);
+  double CoPsLng = zrToLng(CoPs[2], m_radius);
+  double CoPsH = heightField(CoPsLat, CoPsLng);
+  Vector3D centreToCoPs = CoPs - sphereCentre;
+  centreToCoPs.normalize();
+  Point3D soln = sphereCentre + (m_radius+CoPsH)*centreToCoPs;
+
+  intermediateRays.pop_back();
+  while(!intermediateRays.empty()){
+    currentRay = intermediateRays.back();
+
+    double distFromRay = epsilon + 1; // bogus value to make the following while loop run
+    int refineIterations = 0;
+
+    // now keep refining the soln until you're within epsilon of the ray or you bail out
+    while(distFromRay > epsilon){
+
+
+      // using prev soln, pick a soln projection point on the current ray (closest point to prev soln)
+      Vector3D pma = soln - eye;
+      double t = currentRay.dot(pma);//pma.dot(currentRay);
+      Point3D solnProj = eye + t*currentRay;
+
+
+      // figure out where the point on the ray projects to on the underlying surface to get its height
+      Vector3D c2s = solnProj - sphereCentre;
+      c2s.normalize();
+      soln = sphereCentre + m_radius*c2s;
+
+
+      double projLat = xyToLat(soln[0], soln[1]);
+      double projLng = zrToLng(soln[2], m_radius);
+      soln = sphereCentre + (m_radius+heightField(projLat, projLng))*c2s;
+
+
+      distFromRay = abs((soln - solnProj).normalize());
+      
+      if(refineIterations > maxStepsBeforeBailout){
+        return NULL; // no intersection
+      }
+      refineIterations++;
+    }
+
+
+    intermediateRays.pop_back();
+  }
+
+  //exit(1);
+
+  // Adjust soln; translate it back to its corresct location in the scene
+  Vector3D nSol = getNormalAt(xyToLat(soln[0], soln[1]), zrToLng(soln[2], m_radius), m_radius);
+  
+
+  //cout << soln << "\n";
+  //exit(1);
+
+  Vector3D solnN = soln - Point3D(0,0,0);
+  solnN.normalize();
+
+  soln = soln + (m_pos - Point3D(0,0,0));
 
   Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
-  *ans = Intersection(Point3D(0.0, 0.0, 0.0), Vector3D(0.0, 0.0, 0.0), NULL);
+  *ans = Intersection(soln, nSol, NULL);
 
   return ans;
 }
@@ -160,7 +273,7 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
   rayV.normalize(); // just in case
   Vector3D v = rayP - m_pos;
 
-  //return intersectHeightMap(rayP, rayV, trans, m_pos, m_radius);
+  return intersectHeightMap(rayP, rayV, trans, m_pos, m_radius);
 
   //if((-1 * v).dot(rayV) <= m_radius) return NULL; // geometry is behind the ray
  
@@ -214,9 +327,14 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
 
   //if(false) return ans; // IF THE OBJECT IS NOT TRANSPARENT
 
-  ans->setRefraction(true);
-  Vector3D rf = refraction(1.6, ans->getNormal(), rayP, ans->getPoint());
-  ans->setRefAngle(rf);
+  //ans->setRefraction(true);
+  //Vector3D rf = refraction(1.6, ans->getNormal(), rayP, ans->getPoint());
+  //ans->setRefAngle(rf);
+
+  Intersection* a2 = intersectHeightMap(rayP, rayV, trans, m_pos, m_radius);
+
+  //if(a2 != NULL) cout << "\nPOINT  - Expected: " << ans->getPoint() << "\nFucked up value: " << a2->getPoint() << "\n";
+  //if(a2 != NULL) cout << "\nNORMAL - Expected: " << ans->getNormal() << "\nFucked up value: " << a2->getNormal() << "\n";
 
   //std::cout << "\nOrigin: " << rayP << "\nNormal: " << ans->getNormal() << "\nIntersection point: " << ans->getPoint() << "\nRefraction Angle: " << rf;
 
