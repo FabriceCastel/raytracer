@@ -18,7 +18,7 @@ A ray tracer written for CS488, to be extended as a final project due Dec 1st 20
 
 # November 13th 2014 - 9:30pm
 
-I'm putting the height map on hold for a moment to knock off some smaller objectives for now. I've upgraded the lighting model from Phong to Blinn-Phong. I've set up the render to use the blinn specular value for the green channel and the phong specular for the red, so the orange areas are more or less the same with both specular models but the difference is noticeable around the specular dot on the glass sphere.
+I'm putting the height map on hold for a moment to knock off some smaller objectives and take a bit of a breather. I've upgraded the lighting model from Phong to Blinn-Phong. I've set up the sample render (image below) to use the Blinn specular value for the red channel and the Phong specular for the green, so the orange areas are more or less the same with both specular models. The difference is very noticeable around the specular dots on the glass sphere.
 
 ![Alt text](/sampleblinn.png?raw=true "Sample render");
 
