@@ -8,13 +8,19 @@ Objectives:
 3. Height mapping
 4. Post-processing filter
 5. ~~Refraction~~
-6. Blinn-Phong lighting (to replace current Phong model)
+6. ~~Blinn-Phong lighting (to replace current Phong model)~~
 7. Generate animation frames based off MIDI input
 8. Particle system
 9. Optimize raytracer with multithreading
 10. 4th degree implicit surface primitive with genus > 0
 
 A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
+
+# November 13th 2014 - 9:30pm
+
+I'm putting the height map on hold for a moment to knock off some smaller objectives for now. I've upgraded the lighting model from Phong to Blinn-Phong. I've set up the render to use the blinn specular value for the green channel and the phong specular for the red, so the orange areas are more or less the same with both specular models but the difference is noticeable around the specular dot on the glass sphere.
+
+![Alt text](/sampleblinn.png?raw=true "Sample render");
 
 # November 8th 2014 - 2:20pm
 

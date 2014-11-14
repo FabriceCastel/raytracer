@@ -1,7 +1,7 @@
 -- A simple scene with some miscellaneous geometry.
 
 black = gr.material({0.1, 0.1, 0.1}, {1.0, 1.0, 1.0}, 70)
-white = gr.material({1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, 0)
+white = gr.material({1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, 3)
 glass = gr.material({0.0, 0.24, 0.2}, {0.7, 1.0, 0.8}, 400)
 
 red = gr.material({1.0, 0.0, 0.0}, {0.5, 0.7, 0.5}, 30)
@@ -32,7 +32,7 @@ box2:set_material(green)
 
 s1 = gr.nh_sphere('s1', {0, 0, -100}, 200)
 scene_root:add_child(s1)
-s1:set_material(white)
+s1:set_material(glass)
 
 
 white_light = gr.light({-200.0, 800.0, 600.0}, {0.9, 0.9, 0.9}, {1, 0, 0})

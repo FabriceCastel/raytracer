@@ -44,7 +44,7 @@ void a4_render(// What to render
 
 
 
-	int SSAAFactor = 2;
+	int SSAAFactor = 4;
 	height *= SSAAFactor;
 	width *= SSAAFactor;
 
@@ -89,7 +89,7 @@ void a4_render(// What to render
 				Material *mat = col->getMaterial();
 				Colour kd = mat->getKD();
 
-				Vector3D fc = Vector3D(ambient.R()*kd.R(), ambient.G()*kd.G(), ambient.B()*kd.B());
+				Vector3D fc = Vector3D(0,0,0);//Vector3D(ambient.R()*kd.R(), ambient.G()*kd.G(), ambient.B()*kd.B());
 
 				fc = shade(fc, lights, col, eye, root);
 				fc.cap(1.0);
@@ -183,7 +183,7 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Intersection* col, Point3D
 	Material *mat = col->getMaterial();
 	Colour ks = mat->getKS();
 	Colour kd = mat->getKD();
-	double shininess = mat->getShininess();
+	int shininess = (int)mat->getShininess();
 	
 	Point3D point = col->getPoint();
 	Vector3D normal = col->getNormal();
@@ -228,7 +228,29 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Intersection* col, Point3D
 		    		ks.G() * lcol[1],
 		    		ks.B() * lcol[2]);
 	    	}
-	    	fc = fc + diffuse + spec;
+
+	    	// BLINN-PHONG SPEC
+	    	Vector3D lightDirection = lpos - point;
+	    	lightDirection.normalize();
+	    	float cosAngInsidence = normal.dot(lightDirection);
+	    	Vector3D blinnSpec = Vector3D(0,0,0);
+	    	Vector3D specColour = Vector3D(ks.R()*lcol[0],ks.G()*lcol[1],ks.B()*lcol[2]);
+	    	Vector3D halfAngle = (lpos - point) + (eye - point);
+	    	Vector3D hacp = halfAngle;
+	    	halfAngle.normalize();
+	    	halfAngle = (1.0/hacp.normalize()) * halfAngle;
+	    	halfAngle.normalize();
+	    	double blinnTerm = halfAngle.dot(normal);
+	    	if(blinnTerm < 0 || cosAngInsidence == 0.0) blinnTerm = 0;
+	    	if(blinnTerm > 1) blinnTerm = 1;
+	    	//std::cout << blinnTerm << "\n";
+	    	blinnTerm = std::pow(blinnTerm, shininess);
+	    	//std::cout << blinnTerm << "\n";
+	    	blinnSpec = blinnTerm * specColour;
+
+
+	    	fc = fc + diffuse + blinnSpec;
+	    	//fc = Vector3D(blinnSpec[0], spec[0], 0);
 	    } else {
 	    	// the light doesn't contribute to the surface
 	    	free(shadow);

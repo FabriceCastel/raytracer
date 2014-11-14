@@ -97,64 +97,72 @@ Intersection* NonhierBox::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4
 double heightField(double lat, double lng){
   // lat [0, PI]
   // lng [0, 2PI)
-  return sin(lat*3) * 50;
+  return sin(lng*lat*3) * 30;
 }
 
 Vector3D getNormalAt(double lat, double lng, double r){
-  double epsilon = 0.00001;
+  double epsilon = 0.0001;
 
-  if(lat < epsilon && lng < epsilon) return Vector3D(0, 0, 1);
+  //if(lat < epsilon && lng < epsilon) return Vector3D(0, 0, 1);
 
-  // double t = lat;
-  // lat = lng;
-  // lng = t;
-  double h1 = heightField(lat, lng);
-  double x1 = (r+h1)*cos(lat)*sin(lng);
-  double y1 = (r+h1)*sin(lat)*sin(lng);
-  double z1 = (r+h1)*cos(lng);
-  Point3D p1 = Point3D(x1,y1,z1);
-
-  Matrix4x4 rot1 = Matrix4x4();
-  Matrix4x4 rot2 = Matrix4x4();
-
-
-  double lat2 = lat + epsilon;
-  double lng2 = lng;// + epsilon;
-  double lat3 = lat;// - epsilon;
-  double lng3 = lng + epsilon;
-
-  
-  double h2 = heightField(lat2, lng2);
-  double h3 = heightField(lat3, lng3);
-
+  // Input point in world coordinates
   // going from polar to world coordinates:
   // x = r * cos(lat)sin(lng)
   // y = r * sin(lat)sin(lng)
   // z = r * cos(lng)
+  double h1 = 0;//heightField(lat, lng);
+  double x1 = (r+h1)*cos(lat)*sin(lng);
+  double y1 = (r+h1)*sin(lat)*sin(lng);
+  double z1 = (r+h1)*cos(lng);
+  Point3D p1 = Point3D(x1,y1,z1);
+  Vector3D p1normal = p1 - Point3D(0,0,0);
+  p1normal.normalize();
 
-  double x2 = (r+h2)*cos(lat2)*sin(lng2);
-  double y2 = (r+h2)*sin(lat2)*sin(lng2);
-  double z2 = (r+h2)*cos(lng2);
-  Point3D p2 = Point3D(x2,y2,z2);
+  // We now have a point and a normal defining the plane tangent to the sphere at p1
+  // So we need two points on that plane to then project onto the sphere and use
+  // to find the normal (EASY, right? >__>)
+  Point3D p2, p3; // those will be the two points on the plane
 
-  double x3 = (r+h3)*cos(lat3)*sin(lng3);
-  double y3 = (r+h3)*sin(lat3)*sin(lng3);
-  double z3 = (r+h3)*cos(lng3);
-  Point3D p3 = Point3D(x3,y3,z3);
+  Vector3D normal = p1normal;
 
-  Vector3D n = (p2 - p1).cross(p3 - p1);
-  n.normalize();
-  n = -1*n;
 
-  if(n.normalize() == 0){
-    cout << "\nERROR\nNormal at: (" << lat/M_PI << "xPI" << ", " << lng/M_PI << "xPI" << ")\n";
-    cout << "Polar coordinates: \n" << lat2 << " - " << lng2 << "\n" << lat3 << " - " << lng3 << "\n";
-    cout << "Points\n" << p1 << "\n" << p2 << "\n" << p3 << "\n";
-    cout << "Normal: " << n << "\n";
-    exit(1);
-  }
+  // the normal can't point back into the sphere, must mean it's inverted
+  if(p1normal.dot(normal) < 0) normal = -1*normal;
+  return normal;
+  // double lat2 = lat + epsilon;
+  // double lng2 = lng;// + epsilon;
+  // double lat3 = lat;// - epsilon;
+  // double lng3 = lng + epsilon;
 
-  return n;
+  
+  // double h2 = heightField(lat2, lng2);
+  // double h3 = heightField(lat3, lng3);
+
+  
+
+  // double x2 = (r+h2)*cos(lat2)*sin(lng2);
+  // double y2 = (r+h2)*sin(lat2)*sin(lng2);
+  // double z2 = (r+h2)*cos(lng2);
+  // Point3D p2 = Point3D(x2,y2,z2);
+
+  // double x3 = (r+h3)*cos(lat3)*sin(lng3);
+  // double y3 = (r+h3)*sin(lat3)*sin(lng3);
+  // double z3 = (r+h3)*cos(lng3);
+  // Point3D p3 = Point3D(x3,y3,z3);
+
+  // Vector3D n = (p2 - p1).cross(p3 - p1);
+  // n.normalize();
+  // n = -1*n;
+
+  // if(n.normalize() == 0){
+  //   cout << "\nERROR\nNormal at: (" << lat/M_PI << "xPI" << ", " << lng/M_PI << "xPI" << ")\n";
+  //   cout << "Polar coordinates: \n" << lat2 << " - " << lng2 << "\n" << lat3 << " - " << lng3 << "\n";
+  //   cout << "Points\n" << p1 << "\n" << p2 << "\n" << p3 << "\n";
+  //   cout << "Normal: " << n << "\n";
+  //   exit(1);
+  // }
+
+  // return n;
 }
 
 Intersection* intersectHeightMap(Point3D rayP, Vector3D rayV, Matrix4x4 trans, Point3D m_pos, double m_radius){
@@ -273,7 +281,7 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
   rayV.normalize(); // just in case
   Vector3D v = rayP - m_pos;
 
-  return intersectHeightMap(rayP, rayV, trans, m_pos, m_radius);
+  //return intersectHeightMap(rayP, rayV, trans, m_pos, m_radius);
 
   //if((-1 * v).dot(rayV) <= m_radius) return NULL; // geometry is behind the ray
  
@@ -327,9 +335,9 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
 
   //if(false) return ans; // IF THE OBJECT IS NOT TRANSPARENT
 
-  //ans->setRefraction(true);
-  //Vector3D rf = refraction(1.6, ans->getNormal(), rayP, ans->getPoint());
-  //ans->setRefAngle(rf);
+  ans->setRefraction(true);
+  Vector3D rf = refraction(1.6, ans->getNormal(), rayP, ans->getPoint());
+  ans->setRefAngle(rf);
 
   Intersection* a2 = intersectHeightMap(rayP, rayV, trans, m_pos, m_radius);
 
