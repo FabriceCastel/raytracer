@@ -17,24 +17,24 @@ Intersection* SceneNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans)
   Intersection* tcol = NULL;
   for (ChildList::const_iterator iterator = m_children.begin(), end = m_children.end(); iterator != end; ++iterator) {
     tcol = (*iterator)->intersect(rayP, rayV, m_trans*trans);
+    
     if(col == NULL) col = tcol;
-
     else if(col != NULL && tcol != NULL){
       // compare both intersections and keep the closer one as col
       Point3D pt = tcol->getPoint();
       Point3D pc = col->getPoint();
       double ptn = (pt - rayP).normalize();
       double pcn = (pc - rayP).normalize();
-      //std::cout << "pt: " << pt << " | pc: " << pc << " | ptn: " << ptn << " | pcn: " << pcn << "\n";
-      //if(ptn != pcn) exit(1);
+
       if(ptn < pcn){
       	col->setPoint(tcol->getPoint());
       	col->setNormal(tcol->getNormal());
       	col->setMaterial(tcol->getMaterial());
         col->setRefraction(tcol->isRefraction());
         if(tcol->isRefraction()) col->setRefAngle(tcol->getRefAngle());
-	       free(tcol);
       }
+
+      free(tcol);
     }
     c++;
   }

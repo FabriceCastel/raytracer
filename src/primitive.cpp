@@ -339,7 +339,7 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
   Vector3D rf = refraction(1.6, ans->getNormal(), rayP, ans->getPoint());
   ans->setRefAngle(rf);
 
-  Intersection* a2 = intersectHeightMap(rayP, rayV, trans, m_pos, m_radius);
+  //Intersection* a2 = intersectHeightMap(rayP, rayV, trans, m_pos, m_radius);
 
   //if(a2 != NULL) cout << "\nPOINT  - Expected: " << ans->getPoint() << "\nFucked up value: " << a2->getPoint() << "\n";
   //if(a2 != NULL) cout << "\nNORMAL - Expected: " << ans->getNormal() << "\nFucked up value: " << a2->getNormal() << "\n";

@@ -1,6 +1,7 @@
 #include "a4.hpp"
 #include "image.hpp"
 #include "mastertempo.hpp"
+#include <ctime>
 
 void printProgBar( int percent ){
 	std::string bar;
@@ -20,7 +21,7 @@ void printProgBar( int percent ){
 	std::cout<< percent << "%     " << std::flush;
 }
 
-
+#define FRAME_COUNT 3000
 
 void a4_render(// What to render
 	SceneNode* root,
@@ -44,12 +45,21 @@ void a4_render(// What to render
 
 
 
-	int SSAAFactor = 4;
+	int SSAAFactor = 1;
 	height *= SSAAFactor;
 	width *= SSAAFactor;
 
 	double *rbuffer = (double*)malloc(sizeof(double)*3*width*height);
 	int rbufferindex = 0;
+
+////////
+	const long double renderStartTime = time(0);
+	long double previousFrameFinishTime = renderStartTime;
+
+	for(int frame = 0; frame < FRAME_COUNT; frame++){
+		rbufferindex=0;
+////////
+
 
 	for(int y = 0; y < height; y++){
 		for(int x = 0; x < width; x++){
@@ -67,12 +77,17 @@ void a4_render(// What to render
 			bool rayWasRefracted = false;
 
 			Intersection* col = root->intersect(pixel, v, Matrix4x4());
-			Intersection* initHit = col;
+			Intersection* initHit = (Intersection*)malloc(sizeof(Intersection));
+			*initHit = Intersection(col->getPoint(), col->getNormal(), col->getMaterial());
+			initHit->setRefraction(col->isRefraction());
+			initHit->setRefAngle(col->getRefAngle());
+
 			while(col != NULL && col->isRefraction()){
 				Point3D point = col->getPoint();
 				Vector3D normal = col->getNormal();
 				normal.normalize();
 				Vector3D refAngle = col->getRefAngle();
+				free(col);
 				col = root->intersect(point, refAngle, Matrix4x4());
 				rayWasRefracted = true;
 			}
@@ -138,16 +153,25 @@ void a4_render(// What to render
 					//fc = (1.0 / (glassTraversed / 400.0)) * Vector3D(1.0, 1.0, 1.0);
 				}
 
+				fc.cap(1.0);
+
 				rbuffer[rbufferindex++] = fc[0];
 				rbuffer[rbufferindex++] = fc[1];
 				rbuffer[rbufferindex++] = fc[2];
 			}
 			free(col);
+			free(initHit);
 		}
 		printProgBar((y*100)/height);
 	}
 
-	std::cout << "Render complete.\n";
+	//applySinCityFilter(rbuffer, height, width);
+
+	long double delay = previousFrameFinishTime;
+	previousFrameFinishTime = time(0);
+	delay = previousFrameFinishTime - delay;
+
+	std::cout << "  frame " << frame << " of " << FRAME_COUNT << " in " << delay << "s";
 
 
 	Image img(width/SSAAFactor, height/SSAAFactor, 3);
@@ -176,6 +200,27 @@ void a4_render(// What to render
 	}
 	img.savePng(filename);
 
+//////
+}
+//////
+
+}
+
+void applySinCityFilter(double* rbuf, int height, int width){
+	int bufIndex = 0;
+	for(int h = 0; h < height; h++){
+		for(int w = 0; w < width; w++){
+			//std::cout << "BIDX " << bufIndex << "\n";
+			Vector3D orig = Vector3D(rbuf[bufIndex], rbuf[bufIndex+1], rbuf[bufIndex+2]);
+			orig.normalize();
+			Vector3D final = orig;
+
+			rbuf[bufIndex    ] = final[0];
+			rbuf[bufIndex + 1] = final[1];
+			rbuf[bufIndex + 2] = final[2];
+			bufIndex += 3;
+		}
+	}
 }
 
 

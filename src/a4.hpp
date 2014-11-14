@@ -23,5 +23,6 @@ void a4_render(// What to render
 
 Vector3D shade(Vector3D fc, std::list<Light*> lights, Intersection* col, Point3D eye, SceneNode* root);
 
+void applySinCityFilter(double* rbuf, int height, int width);
 
 #endif

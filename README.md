@@ -16,11 +16,15 @@ Objectives:
 
 A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
 
+# November 14th 2014 - 1:15pm
+
+Valgrind is love! A little while back I tried sticking my render method in a for loop to generate animation frames and the render rates absolutely tanked past the first frame. This was due to memory leaks which I've now tackled with the help of the trusty valgrind --leak-check=yes tool. This doesn't strike any objectives off my list, but it sure is reassuring to know I'll be able to generate my animation when it comes down to that.
+
 # November 13th 2014 - 9:30pm
 
 I'm putting the height map on hold for a moment to knock off some smaller objectives and take a bit of a breather. I've upgraded the lighting model from Phong to Blinn-Phong. I've set up the sample render (image below) to use the Blinn specular value for the red channel and the Phong specular for the green, so the orange areas are more or less the same with both specular models. The difference is very noticeable around the specular dots on the glass sphere.
 
-![Alt text](/sampleblinn.png?raw=true "Sample render");
+![Alt text](/sampleblinn.png?raw=true "Sample render")
 
 # November 8th 2014 - 2:20pm
 
