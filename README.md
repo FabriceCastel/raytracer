@@ -19,7 +19,7 @@ A ray tracer written for CS488, to be extended as a final project due Dec 1st 20
 
 # November 15th - 5:10pm
 
-I've implemented a Sin City-like post-processing filter. The first image below is pre-filter and the image on the right is post-filter. The results look pretty decent but it took a lot of messing around with the parameters, I'm not sure how well this will apply to my geometry further down the line. At any rate it shouldn't be too hard now that I've put these tests in place.
+I've implemented a Sin City-like post-processing filter. The first image below is pre-filter and the second is post-filter. The results look pretty decent but it took a lot of messing around with the parameters, I'm not sure how well this will apply to my geometry further down the line. At any rate it shouldn't be too hard now that I've put these tests in place.
 
 ![Alt text](/prefilter.png?raw=true "Sample render")
 ![Alt text](/postfilter.png?raw=true "Sample render")
