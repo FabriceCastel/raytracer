@@ -16,9 +16,6 @@ Objectives:
 
 A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
 
-# November 14th 2014 - 1:15pm
-
-Valgrind is love! A little while back I tried sticking my render method in a for loop to generate animation frames and the render rates absolutely tanked past the first frame. This was due to memory leaks which I've now tackled with the help of the trusty valgrind --leak-check=yes tool. This doesn't strike any objectives off my list, but it sure is reassuring to know I'll be able to generate my animation when it comes down to that.
 
 # November 15th - 5:10pm
 
@@ -26,6 +23,10 @@ I've implemented a Sin City-like post-processing filter. The first image below i
 
 ![Alt text](/prefilter.png?raw=true "Sample render")
 ![Alt text](/postfilter.png?raw=true "Sample render")
+
+# November 14th 2014 - 1:15pm
+
+Valgrind is love! A little while back I tried sticking my render method in a for loop to generate animation frames and the render rates absolutely tanked past the first frame. This was due to memory leaks which I've now tackled with the help of the trusty valgrind --leak-check=yes tool. This doesn't strike any objectives off my list, but it sure is reassuring to know I'll be able to generate my animation when it comes down to that.
 
 # November 13th 2014 - 9:30pm
 
