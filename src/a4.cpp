@@ -2,6 +2,8 @@
 #include "image.hpp"
 #include "mastertempo.hpp"
 #include <ctime>
+#include <stdlib.h>
+#include <sstream>
 
 void printProgBar( int percent ){
 	std::string bar;
@@ -21,7 +23,7 @@ void printProgBar( int percent ){
 	std::cout<< percent << "%     " << std::flush;
 }
 
-#define FRAME_COUNT 3000
+#define FRAME_COUNT 1
 
 void a4_render(// What to render
 	SceneNode* root,
@@ -56,164 +58,197 @@ void a4_render(// What to render
 	const long double renderStartTime = time(0);
 	long double previousFrameFinishTime = renderStartTime;
 
-	for(int frame = 0; frame < FRAME_COUNT; frame++){
+	for(int frame = 1; frame <= FRAME_COUNT; frame++){
 		rbufferindex=0;
 ////////
 
 
-	for(int y = 0; y < height; y++){
-		for(int x = 0; x < width; x++){
-			double fovx = M_PI * ((double)fov/360.0);
-			double fovy = (double)height/width * fovx;
+		for(int y = 0; y < height; y++){
+			for(int x = 0; x < width; x++){
+				double fovx = M_PI * ((double)fov/360.0);
+				double fovy = (double)height/width * fovx;
 
-			Point3D pixel = Point3D();
-			pixel[0] = (2.0*x - width)/width * tan(fovx);
-			pixel[1] = (-1 * (2.0*y - height)/height) * tan(fovy);
-			pixel[2] = eye[2] - 1.0;
+				Point3D pixel = Point3D();
+				pixel[0] = (2.0*x - width)/width * tan(fovx);
+				pixel[1] = (-1 * (2.0*y - height)/height) * tan(fovy);
+				pixel[2] = eye[2] - 1.0;
 
-			Vector3D v = pixel - eye;
+				Vector3D v = pixel - eye;
 
-			v.normalize();
-			bool rayWasRefracted = false;
+				v.normalize();
+				bool rayWasRefracted = false;
 
-			Intersection* col = root->intersect(pixel, v, Matrix4x4());
-			Intersection* initHit = (Intersection*)malloc(sizeof(Intersection));
-			*initHit = Intersection(col->getPoint(), col->getNormal(), col->getMaterial());
-			initHit->setRefraction(col->isRefraction());
-			initHit->setRefAngle(col->getRefAngle());
+				Intersection* col = root->intersect(pixel, v, Matrix4x4());
+				Intersection* initHit = (Intersection*)malloc(sizeof(Intersection));
+				*initHit = Intersection(col->getPoint(), col->getNormal(), col->getMaterial());
+				initHit->setRefraction(col->isRefraction());
+				initHit->setRefAngle(col->getRefAngle());
 
-			while(col != NULL && col->isRefraction()){
-				Point3D point = col->getPoint();
-				Vector3D normal = col->getNormal();
-				normal.normalize();
-				Vector3D refAngle = col->getRefAngle();
-				free(col);
-				col = root->intersect(point, refAngle, Matrix4x4());
-				rayWasRefracted = true;
-			}
+				while(col != NULL && col->isRefraction()){
+					Point3D point = col->getPoint();
+					Vector3D normal = col->getNormal();
+					normal.normalize();
+					Vector3D refAngle = col->getRefAngle();
+					free(col);
+					col = root->intersect(point, refAngle, Matrix4x4());
+					rayWasRefracted = true;
+				}
 
-      //col->setPoint(initHit->getPoint());
-      //col->setNormal(initHit->getNormal());
-      //if(TEST != 0) exit(1);
+	      //col->setPoint(initHit->getPoint());
+	      //col->setNormal(initHit->getNormal());
+	      //if(TEST != 0) exit(1);
 
-			if(col == NULL){
-				rbuffer[rbufferindex++] = 0;//-0.3 + (double)y/height;
-				rbuffer[rbufferindex++] = 0;//0.4 + 0.2*(double)x/width;
-				rbuffer[rbufferindex++] = 0;//0.6;
-			} else {
-				Material *mat = col->getMaterial();
-				Colour kd = mat->getKD();
+				if(col == NULL){
+					rbuffer[rbufferindex++] = 0;//-0.3 + (double)y/height;
+					rbuffer[rbufferindex++] = 0;//0.4 + 0.2*(double)x/width;
+					rbuffer[rbufferindex++] = 0;//0.6;
+				} else {
+					Material *mat = col->getMaterial();
+					Colour kd = mat->getKD();
 
-				Vector3D fc = Vector3D(0,0,0);//Vector3D(ambient.R()*kd.R(), ambient.G()*kd.G(), ambient.B()*kd.B());
+					Vector3D fc = Vector3D(0,0,0);//Vector3D(ambient.R()*kd.R(), ambient.G()*kd.G(), ambient.B()*kd.B());
 
-				fc = shade(fc, lights, col, eye, root);
-				fc.cap(1.0);
+					fc = shade(fc, lights, col, eye, root);
+					fc.cap(1.0);
 
-				if(rayWasRefracted){
-					double opacityFactor = initHit->getNormal().dot(v);
-					if(opacityFactor < 0) opacityFactor *= -1;
+					if(rayWasRefracted){
+						double opacityFactor = initHit->getNormal().dot(v);
+						if(opacityFactor < 0) opacityFactor *= -1;
 
-					if(opacityFactor > 1){
-						std::cout << "opacityFactor = " << opacityFactor << "\n";
-						exit(1);
+						if(opacityFactor > 1){
+							std::cout << "opacityFactor = " << opacityFactor << "\n";
+							exit(1);
+						}
+
+						opacityFactor = 1 - opacityFactor;
+						opacityFactor = pow(opacityFactor, 3) + pow(opacityFactor + 0.1, 5);
+						opacityFactor /= 2.0;
+						if(opacityFactor > 1) opacityFactor = 1;
+						//opacityFactor = 1 - opacityFactor;
+						
+
+						double transparancy = 0.9 * (1.0 - opacityFactor);//300.0 / glassTraversed;
+						Colour glassKD = initHit->getMaterial()->getKD();
+						Vector3D glassDiff = Vector3D(glassKD.R(), glassKD.G(), glassKD.B());
+						Vector3D glassSpec = Vector3D(0.0, 0.0, 0.0);
+						glassDiff = shade(glassDiff, lights, initHit, eye, root);
+
+						//
+						// Hacky way of calculating ONLY the specular part (use black diffuse and white spec)
+						//
+						Intersection glassSpecI = (*initHit);
+						const Colour black = Colour(0.0, 0.0, 0.0);
+						const Colour white = Colour(1.0, 1.0, 1.0);
+						double shine = initHit->getMaterial()->getShininess();
+						Material* onlySpec = (Material*) new PhongMaterial(black, white, shine);
+						glassSpecI.setMaterial(onlySpec);
+						glassSpec = shade(glassSpec, lights, &glassSpecI, eye, root);
+						delete(onlySpec);
+						//
+						// </hack>
+						//
+
+						glassDiff.cap(1.0);
+						fc = (transparancy*fc) + ((1.0-transparancy)*glassDiff) + glassSpec;
+
+						// Sphere has radius 200
+						//fc = (1.0 / (glassTraversed / 400.0)) * Vector3D(1.0, 1.0, 1.0);
 					}
 
-					opacityFactor = 1 - opacityFactor;
-					opacityFactor = pow(opacityFactor, 3) + pow(opacityFactor + 0.1, 5);
-					opacityFactor /= 2.0;
-					if(opacityFactor > 1) opacityFactor = 1;
-					//opacityFactor = 1 - opacityFactor;
-					
+					fc.cap(1.0);
 
-					double transparancy = 0.9 * (1.0 - opacityFactor);//300.0 / glassTraversed;
-					Colour glassKD = initHit->getMaterial()->getKD();
-					Vector3D glassDiff = Vector3D(glassKD.R(), glassKD.G(), glassKD.B());
-					Vector3D glassSpec = Vector3D(0.0, 0.0, 0.0);
-					glassDiff = shade(glassDiff, lights, initHit, eye, root);
-
-					//
-					// Hacky way of calculating ONLY the specular part (use black diffuse and white spec)
-					//
-					Intersection glassSpecI = (*initHit);
-					const Colour black = Colour(0.0, 0.0, 0.0);
-					const Colour white = Colour(1.0, 1.0, 1.0);
-					double shine = initHit->getMaterial()->getShininess();
-					Material* onlySpec = (Material*) new PhongMaterial(black, white, shine);
-					glassSpecI.setMaterial(onlySpec);
-					glassSpec = shade(glassSpec, lights, &glassSpecI, eye, root);
-					delete(onlySpec);
-					//
-					// </hack>
-					//
-
-					glassDiff.cap(1.0);
-					fc = (transparancy*fc) + ((1.0-transparancy)*glassDiff) + glassSpec;
-
-					// Sphere has radius 200
-					//fc = (1.0 / (glassTraversed / 400.0)) * Vector3D(1.0, 1.0, 1.0);
+					rbuffer[rbufferindex++] = fc[0];
+					rbuffer[rbufferindex++] = fc[1];
+					rbuffer[rbufferindex++] = fc[2];
 				}
-
-				fc.cap(1.0);
-
-				rbuffer[rbufferindex++] = fc[0];
-				rbuffer[rbufferindex++] = fc[1];
-				rbuffer[rbufferindex++] = fc[2];
+				free(col);
+				free(initHit);
 			}
-			free(col);
-			free(initHit);
+			printProgBar((y*100)/height);
 		}
-		printProgBar((y*100)/height);
-	}
 
-	//applySinCityFilter(rbuffer, height, width);
+		applySinCityFilter(rbuffer, height, width);
 
-	long double delay = previousFrameFinishTime;
-	previousFrameFinishTime = time(0);
-	delay = previousFrameFinishTime - delay;
+		long double delay = previousFrameFinishTime;
+		previousFrameFinishTime = time(0);
+		delay = previousFrameFinishTime - delay;
 
-	std::cout << "  frame " << frame << " of " << FRAME_COUNT << " in " << delay << "s";
+		std::cout << "  frame " << frame << " of " << FRAME_COUNT << " in " << delay << "s";
 
 
-	Image img(width/SSAAFactor, height/SSAAFactor, 3);
-	rbufferindex = 0;
+		Image img(width/SSAAFactor, height/SSAAFactor, 3);
+		rbufferindex = 0;
 
-	for (int y = 0; y < height/SSAAFactor; y++) {
-		for (int x = 0; x < width/SSAAFactor; x++) {
-			double red = 0.0;
-			double green = 0.0;
-			double blue = 0.0;
-			for(int i = 0; i < SSAAFactor; i++){
-				for(int j = 0; j < SSAAFactor; j++){
-					int sx = SSAAFactor * x;
-					int sy = SSAAFactor * y;
-					double sa = SSAAFactor * SSAAFactor;
-					int baseIndex = 3 * (sx + sy*width);
-					red   += rbuffer[baseIndex   + 3*i + 3*width*j ] / sa;
-					green += rbuffer[baseIndex+1 + 3*i + 3*width*j ] / sa;
-					blue  += rbuffer[baseIndex+2 + 3*i + 3*width*j ] / sa;
+		for (int y = 0; y < height/SSAAFactor; y++) {
+			for (int x = 0; x < width/SSAAFactor; x++) {
+				double red = 0.0;
+				double green = 0.0;
+				double blue = 0.0;
+				for(int i = 0; i < SSAAFactor; i++){
+					for(int j = 0; j < SSAAFactor; j++){
+						int sx = SSAAFactor * x;
+						int sy = SSAAFactor * y;
+						double sa = SSAAFactor * SSAAFactor;
+						int baseIndex = 3 * (sx + sy*width);
+						red   += rbuffer[baseIndex   + 3*i + 3*width*j ] / sa;
+						green += rbuffer[baseIndex+1 + 3*i + 3*width*j ] / sa;
+						blue  += rbuffer[baseIndex+2 + 3*i + 3*width*j ] / sa;
+					}
 				}
+				img(x, y, 0) = red;
+				img(x, y, 1) = green;
+				img(x, y, 2) = blue;
 			}
-			img(x, y, 0) = red;
-			img(x, y, 1) = green;
-			img(x, y, 2) = blue;
 		}
-	}
-	img.savePng(filename);
 
-//////
-}
-//////
+		int frameCountScale = 100000000;
+
+		string frameName = "";
+		for(int mf = frame; mf < frameCountScale; mf *= 10){
+			frameName = frameName + "0";
+		}
+		string frameNumberStr = "";
+		stringstream ss;
+		ss << frame;
+		frameNumberStr = ss.str();
+		frameName = frameName + frameNumberStr + ".png";
+
+		img.savePng(frameName);
+
+	//////
+	}
+	//////
 
 }
 
 void applySinCityFilter(double* rbuf, int height, int width){
+	// string alig = "../data/ali_g.png";
+	// Image ali;
+	// ali.loadPng(alig);
+	// int aliw = ali.width();
+	// int alih = ali.height();
+	// int aliElems = ali.elements(); // the number of doubles per pixel
+	// double* aliData = ali.data();
+	// int aliIndex = 0;
+	double contrastThreshold = 0.05;
+	double coontrastStrength = 3.0;
+	
 	int bufIndex = 0;
 	for(int h = 0; h < height; h++){
 		for(int w = 0; w < width; w++){
 			//std::cout << "BIDX " << bufIndex << "\n";
-			Vector3D orig = Vector3D(rbuf[bufIndex], rbuf[bufIndex+1], rbuf[bufIndex+2]);
-			orig.normalize();
-			Vector3D final = orig;
+			Vector3D orig = Vector3D(rbuf[bufIndex],rbuf[bufIndex+1],rbuf[bufIndex+2]);
+			double greyscale = 0.33333 * orig.dot(Vector3D(1,1,1));
+			Vector3D final = Vector3D(greyscale, greyscale, greyscale);
+
+			double gWeight = smoothstep(0.0, 0.6, orig[0] - (orig[1]+orig[2])/2);
+
+			final = (1.0 - gWeight)*final + gWeight*Vector3D(orig[0]*1.1, orig[1]*0.6, orig[2]*0.6);
+
+			for(int g = 0; g < 3; g++){
+				final[g] = std::pow(final[g] + contrastThreshold, coontrastStrength);
+			}
+
 
 			rbuf[bufIndex    ] = final[0];
 			rbuf[bufIndex + 1] = final[1];

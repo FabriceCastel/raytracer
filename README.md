@@ -6,7 +6,7 @@ Objectives:
 1. Texture mapping
 2. Volumetric lighting
 3. Height mapping
-4. Post-processing filter
+4. ~~Post-processing filter~~
 5. ~~Refraction~~
 6. ~~Blinn-Phong lighting (to replace current Phong model)~~
 7. Generate animation frames based off MIDI input
@@ -19,6 +19,13 @@ A ray tracer written for CS488, to be extended as a final project due Dec 1st 20
 # November 14th 2014 - 1:15pm
 
 Valgrind is love! A little while back I tried sticking my render method in a for loop to generate animation frames and the render rates absolutely tanked past the first frame. This was due to memory leaks which I've now tackled with the help of the trusty valgrind --leak-check=yes tool. This doesn't strike any objectives off my list, but it sure is reassuring to know I'll be able to generate my animation when it comes down to that.
+
+# November 15th - 5:10pm
+
+I've implemented a Sin City-like post-processing filter. The first image below is pre-filter and the image on the right is post-filter. The results look pretty decent but it took a lot of messing around with the parameters, I'm not sure how well this will apply to my geometry further down the line. At any rate it shouldn't be too hard now that I've put these tests in place.
+
+![Alt text](/prefilter.png?raw=true "Sample render")
+![Alt text](/postfilter.png?raw=true "Sample render")
 
 # November 13th 2014 - 9:30pm
 

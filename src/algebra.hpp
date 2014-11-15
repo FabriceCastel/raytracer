@@ -500,5 +500,7 @@ double intersectPlane(Point3D p, Vector3D n, Point3D planeP, Vector3D planeN);
 Vector3D refraction(double refIdx, Vector3D normal, Point3D rayOrigin, Point3D point);
 double xyToLat(double x, double y);
 double zrToLng(double z, double r);
+double clamp(double val, double lowerBound, double upperBound);
+double smoothstep(double low, double high, double x);
 
 #endif // CS488_ALGEBRA_HPP

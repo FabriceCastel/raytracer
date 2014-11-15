@@ -15,6 +15,17 @@
 #include "algebra.hpp"
 #include <math.h>
 
+double clamp(double val, double lowerBound, double upperBound){
+  if(val > upperBound) val = upperBound;
+  if(val < lowerBound) val = lowerBound;
+  return val;
+}
+
+double smoothstep(double low, double high, double x){
+  double mx = clamp((x-low)/(high-low), 0.0, 1.0);
+  return mx*mx*(3-2*mx);
+}
+
 double xyToLat(double x, double y){
   double lat = atan2(y, x);
   if(isnan(lat)){
