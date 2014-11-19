@@ -5,17 +5,20 @@ Objectives:
 
 1. Texture mapping
 2. Volumetric lighting
-3. Height mapping
+3. Height mapping [IN PROGRESS]
 4. ~~Post-processing filter~~
 5. ~~Refraction~~
 6. ~~Blinn-Phong lighting (to replace current Phong model)~~
-7. Generate animation frames based off MIDI input
+7. Generate animation frames based off MIDI input [IN PROGRESS]
 8. Particle system
 9. Optimize raytracer with multithreading
 10. 4th degree implicit surface primitive with genus > 0
 
 A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
 
+# November 18th - 8:30pm
+
+I'm taking a third stab at the MIDI file interpretation, this time with the STK library. So far the note ID and ticks between MIDI events seem to read properly, the only issue is the velocities I'm reading that are a bit out of whack. Thankfully velocity isn't a crucial feature, so I might roll with what I've got right now and come back to try and fix velocity past the project due date. Good thing I switched over to this library, writing my own MIDI SMF0 parser was starting to make me rip my hair out. The in-progress is on the midi_third_attempt branch, I'll take another quick jab at velocity then merge it.
 
 # November 15th - 5:10pm
 
