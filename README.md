@@ -16,6 +16,10 @@ Objectives:
 
 A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
 
+# November 19th - 9:50am
+
+I've solved the velocity problem! Turns out the STK library was passing me back the three components of MIDI events backwards, so instead of reading the velocity data I was reading the status byte and getting wonky results. D'oh. Now that this is sorted, I've got to convert event ticks to absolute time and find a nice way of passing this information along through my renderer. Easy, right?
+
 # November 18th - 8:30pm
 
 I'm taking a third stab at the MIDI file interpretation, this time with the STK library. So far the note ID and ticks between MIDI events seem to read properly, the only issue is the velocities I'm reading that are a bit out of whack. Thankfully velocity isn't a crucial feature, so I might roll with what I've got right now and come back to try and fix velocity past the project due date. Good thing I switched over to this library, writing my own MIDI SMF0 parser was starting to make me rip my hair out. The in-progress is on the midi_third_attempt branch, I'll take another quick jab at velocity then merge it.
