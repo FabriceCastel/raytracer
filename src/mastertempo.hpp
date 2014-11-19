@@ -18,20 +18,20 @@ public:
 		this->n = note;
 		this->noteIsOn = noteIsOn;
 		this->vel = velocity;
-		this->ticksUntilNextEvent = ticks;
+		this->ticksSinceLastEvent = ticks;
 	};
 
 	int getNote(){return n;};
 	bool isNoteOn(){return noteIsOn;};
 	float getVel(){return vel;};
-	int getticksUntilNextEvent(){return ticksUntilNextEvent;};
+	int getTicksSinceLastEvent(){return ticksSinceLastEvent;};
 	void printEvent();
 
 private:
 	int n;
 	bool noteIsOn;
 	float vel;
-	int ticksUntilNextEvent;
+	int ticksSinceLastEvent;
 };
 
 
@@ -58,8 +58,8 @@ private:
 
 	vector<MidiEvent> midiEvents;
 
-	void noteOff(char data1, char data2, char data3);
-	void noteOn(char data1, char data2, char data3);
+	void noteOff(char data1, char data2, unsigned long ticks);
+	void noteOn(char data1, char data2, unsigned long ticks);
 
 	int getNoteId(char data);
 	int getVelocity(char data);

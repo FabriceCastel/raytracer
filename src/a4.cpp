@@ -41,9 +41,9 @@ void a4_render(// What to render
 {
 
 
-	//MasterTempo masterTempo = MasterTempo("../data/1.mid");
-	//masterTempo.printMidiEvents();
-	//exit(1);
+	MasterTempo masterTempo = MasterTempo("../data/1.mid");
+	masterTempo.printMidiEvents();
+	exit(1);
 
 
 

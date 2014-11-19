@@ -1,4 +1,5 @@
 #include "mastertempo.hpp"
+#include "MidiFileIn.h"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -14,15 +15,58 @@
 // In order to get 1/8, 1/16 or 1/32 notes, you could simply multiply the song
 // tempo by a power of two and stretch the MIDI track accordingly
 
+using namespace stk;
+using namespace std;
+
 
 void MidiEvent::printEvent(){
 	cout << "Note ID: " << n << " | " <<
 		"Pressed: " << noteIsOn <<
 		" | Velocity: " << vel <<
-		" | Ticks since last event: " << ticksUntilNextEvent << "\n";
+		" | Ticks since last event: " << ticksSinceLastEvent << "\n";
 }
 
 bool MasterTempo::decodeMidi(){
+	vector<unsigned char> midiEvents = vector<unsigned char>();
+	vector<unsigned char> nextEvent = vector<unsigned char>();
+
+	MidiFileIn midiFile(midi);
+	std::cout << "Tracks: " << midiFile.getNumberOfTracks() << "\n";
+	std::cout << "Format: " << midiFile.getFileFormat() << "\n";
+
+	
+	unsigned long deltaTime = midiFile.getNextMidiEvent(&midiEvents, 0);
+
+	while(!midiEvents.empty()){
+		double currentDeltaTimeTicks = midiFile.getTickSeconds(0);
+
+		int ch_msg = (int)midiEvents.back(); midiEvents.pop_back();
+		char d1 = midiEvents.back();         midiEvents.pop_back();
+		char d2 = midiEvents.back();         midiEvents.pop_back();
+		// if(midiEvents.empty()){	 cout << "WHAT THE FUCK MAN"; exit(1);}
+		// cout << "EVENT: ";
+
+		bitset<8> b;
+		b = ch_msg;
+		cout << b << "-";
+		b = d1;
+		cout << b << "-";
+		b = d2;
+		cout << b << "- ticks since last: " << deltaTime << "\n";
+		// for(int i = 0; i < 3; i++){
+
+		if(ch_msg == 100){
+			noteOn(d1, d2, deltaTime);
+		}
+		if(ch_msg == 64){
+			noteOff(d1, d2, deltaTime);
+		}
+
+		deltaTime = midiFile.getNextMidiEvent(&midiEvents, 0);
+	}
+	cout << "\n";
+	return true;
+
 	// The MIDI message byte type is indicated by the first bit:
 	// 0 = Data byte
 	// 1 = Status byte
@@ -194,30 +238,25 @@ bool MasterTempo::decodeMidi(){
 // For both note off and on, run checks for valid (positive) velocity
 // It seems to be accepting notes with negative velocity at the moment,
 // which clearly isn't correct
-void MasterTempo::noteOff(char data1, char data2, char data3){
+void MasterTempo::noteOff(char data1, char data2, unsigned long ticks){
 	int note = getNoteId(data1);
-	int vel = getVelocity(data2);
-	int ticksUntilNextEvent = (int)data3;
+	uint8_t vel = getVelocity(data2);
 	float velf = ((float)vel)/MAX_VELOCITY;
-	if(vel > 0){
-		MidiEvent mev = MidiEvent(note, false, velf, ticksUntilNextEvent);
-		midiEvents.push_back(mev);
-	}
+	MidiEvent mev = MidiEvent(note, false, velf, ticks);
+	midiEvents.push_back(mev);
 }
 
 
-void MasterTempo::noteOn(char data1, char data2, char data3){
+void MasterTempo::noteOn(char data1, char data2, unsigned long ticks){
 	int note = getNoteId(data1);
-	int vel = getVelocity(data2);
-	int ticksUntilNextEvent = (int)data3;
+	uint8_t vel = getVelocity(data2);
 	float velf = ((float)vel)/MAX_VELOCITY;
-	if(vel > 0){
-		MidiEvent mev = MidiEvent(note, true, velf, ticksUntilNextEvent);
-		midiEvents.push_back(mev);
-	} else if(vel == 0){
-		MidiEvent mev = MidiEvent(note, false, 0, ticksUntilNextEvent);
-		midiEvents.push_back(mev);
-	}
+	MidiEvent mev = MidiEvent(note, true, velf, ticks);
+	midiEvents.push_back(mev);
+	// } else {
+	// 	MidiEvent mev = MidiEvent(note, false, 0, ticks);
+	// 	midiEvents.push_back(mev);
+	// }
 }
 
 int MasterTempo::getNoteId(char data){
