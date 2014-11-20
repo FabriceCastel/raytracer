@@ -16,6 +16,10 @@ Objectives:
 
 A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
 
+# November 19th - 9:15pm
+
+MIDI input works now. All that's left to do with regards to that is passing the info through the intersection method and have the concerned objects check the MIDI state for the given frame to decide whatever it is they need to decide. Oh and allowing the user to specify what note to attach to what parameter with the Lua script. Not bad, not bad. I meant to post an exapmle video with the Sin City filter getting triggered on and off but youtube wouldn't take my output .avi for reasons unknown to me.
+
 # November 19th - 9:50am
 
 I've solved the velocity problem! Turns out the STK library was passing me back the three components of MIDI events backwards, so instead of reading the velocity data I was reading the status byte and getting wonky results. D'oh. Now that this is sorted, I've got to convert event ticks to absolute time and find a nice way of passing this information along through my renderer. Easy, right?
