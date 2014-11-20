@@ -4,18 +4,40 @@
 #include <iostream>
 #include <string>
 #include <cmath>
-
+#include <algorithm>
 
 
 using namespace stk;
 using namespace std;
 
 
+
+void MasterTempo::updateFrame(int frame){
+	currentFrame = frame;
+	updateState();
+}
+
+void MasterTempo::updateState(){
+	double currentTime = ((double)currentFrame)/fps;
+	//cout << "\nUpdate state for time " << currentTime << "\n";
+
+	for(vector<MidiEvent>::iterator mev = midiEvents.begin(); mev != midiEvents.end(); ++mev){
+		MidiEvent e = (*mev);
+		if(e.getEventTime() > currentTime) break;
+		//e.printEvent();
+		int eId = e.getNote();
+		bool eStatus = e.isNoteOn();
+		float eVel = e.getVel();
+		noteStatus[eId] = eStatus;
+		noteVelocity[eId] = eVel;
+	}
+}
+
 void MidiEvent::printEvent(){
 	cout << "Note ID: " << n << " | " <<
 		"Pressed: " << noteIsOn <<
 		" | Velocity: " << vel <<
-		" | Ticks since last event: " << ticksSinceLastEvent << "\n";
+		" | Event time: " << eventTime << "s\n";
 }
 
 bool MasterTempo::decodeMidi(){
@@ -24,41 +46,48 @@ bool MasterTempo::decodeMidi(){
 	MidiFileIn midiFile(midi);
 
 	unsigned long deltaTime = midiFile.getNextMidiEvent(&midiEvents, 0);
+	// not sure why we need to multiply by 2 here, but doing 60.0/bpm yields only
+	// half as much as it should, so this'll have to do for now... (in SMF0 the bpm
+	// info isn't stored apparently, so that needs manual input)
+	secondsPerTick = midiFile.getTickSeconds(0) * (120.0 / bpm);
+
+	double currentTickValue = 0;
 
 	while(!midiEvents.empty()){
-		double currentDeltaTimeTicks = midiFile.getTickSeconds(0);
+		currentTickValue += deltaTime;
 
 		char d2 = midiEvents.back();         midiEvents.pop_back();
 		char d1 = midiEvents.back();         midiEvents.pop_back();
 		int ch_msg = (int)midiEvents.back(); midiEvents.pop_back();
 
 		if(ch_msg == (128+16)){
-			noteOn(d1, d2, deltaTime);
+			noteOn(d1, d2, currentTickValue * secondsPerTick);
 		}
 		if(ch_msg == 128){
-			noteOff(d1, d2, deltaTime);
+			noteOff(d1, d2, currentTickValue * secondsPerTick);
 		}
 
 		deltaTime = midiFile.getNextMidiEvent(&midiEvents, 0);
 	}
+
 	return true;
 }
 
 
-void MasterTempo::noteOff(char data1, char data2, unsigned long ticks){
+void MasterTempo::noteOff(char data1, char data2, double eventTime){
 	int note = getNoteId(data1);
 	uint8_t vel = getVelocity(data2);
 	float velf = ((float)vel)/MAX_VELOCITY;
-	MidiEvent mev = MidiEvent(note, false, velf, ticks);
+	MidiEvent mev = MidiEvent(note, false, velf, eventTime);
 	midiEvents.push_back(mev);
 }
 
 
-void MasterTempo::noteOn(char data1, char data2, unsigned long ticks){
+void MasterTempo::noteOn(char data1, char data2, double eventTime){
 	int note = getNoteId(data1);
 	uint8_t vel = getVelocity(data2);
 	float velf = ((float)vel)/MAX_VELOCITY;
-	MidiEvent mev = MidiEvent(note, true, velf, ticks);
+	MidiEvent mev = MidiEvent(note, true, velf, eventTime);
 	midiEvents.push_back(mev);
 }
 

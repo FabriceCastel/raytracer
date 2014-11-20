@@ -23,7 +23,7 @@ void printProgBar( int percent ){
 	std::cout<< percent << "%     " << std::flush;
 }
 
-#define FRAME_COUNT 1
+#define FRAME_COUNT 100
 
 void a4_render(// What to render
 	SceneNode* root,
@@ -40,13 +40,8 @@ void a4_render(// What to render
 	)
 {
 
-
-	MasterTempo masterTempo = MasterTempo("../data/1.mid");
-	masterTempo.printMidiEvents();
-	exit(1);
-
-
-
+	int framerate = 15;
+	MasterTempo masterTempo = MasterTempo("../data/1.mid", 143.0, framerate, 1);
 	int SSAAFactor = 1;
 	height *= SSAAFactor;
 	width *= SSAAFactor;
@@ -54,13 +49,14 @@ void a4_render(// What to render
 	double *rbuffer = (double*)malloc(sizeof(double)*3*width*height);
 	int rbufferindex = 0;
 
-////////
+
 	const long double renderStartTime = time(0);
 	long double previousFrameFinishTime = renderStartTime;
 
 	for(int frame = 1; frame <= FRAME_COUNT; frame++){
+		masterTempo.updateFrame(frame);
 		rbufferindex=0;
-////////
+
 
 
 		for(int y = 0; y < height; y++){
@@ -164,15 +160,18 @@ void a4_render(// What to render
 				free(col);
 				free(initHit);
 			}
-			printProgBar((y*100)/height);
 		}
 
-		applySinCityFilter(rbuffer, height, width);
+		if(masterTempo.getNoteStatus(12)){
+			applySinCityFilter(rbuffer, height, width);
+		}
 
 		long double delay = previousFrameFinishTime;
 		previousFrameFinishTime = time(0);
 		delay = previousFrameFinishTime - delay;
 
+
+		printProgBar((frame*100)/FRAME_COUNT);
 		std::cout << "  frame " << frame << " of " << FRAME_COUNT << " in " << delay << "s";
 
 
@@ -214,11 +213,19 @@ void a4_render(// What to render
 		frameName = frameName + frameNumberStr + ".png";
 
 		img.savePng(frameName);
-
-	//////
 	}
-	//////
-
+	
+	stringstream ss;
+	ss << "ffmpeg -i \%09d.png -framerate ";
+	ss << framerate;
+	ss << " -y -f avi -b 1.5M -s " << width/SSAAFactor << "x" << height/SSAAFactor;
+	ss << " " << filename << ".avi";
+	const char* ffmpegCommand = ss.str().c_str();
+	cout << "\n\n";
+	system(ffmpegCommand);
+	system("rm *.png");
+	system("clear");
+	cout << "Render complete: " << filename << ".avi\n";
 }
 
 void applySinCityFilter(double* rbuf, int height, int width){
