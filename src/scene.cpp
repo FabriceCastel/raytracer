@@ -11,12 +11,12 @@ SceneNode::~SceneNode()
 {
 }
 
-Intersection* SceneNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans){
+Intersection* SceneNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans, MasterTempo* mt){
   int c = 0;
   Intersection* col = NULL;
   Intersection* tcol = NULL;
   for (ChildList::const_iterator iterator = m_children.begin(), end = m_children.end(); iterator != end; ++iterator) {
-    tcol = (*iterator)->intersect(rayP, rayV, m_trans*trans);
+    tcol = (*iterator)->intersect(rayP, rayV, m_trans*trans, mt);
     
     if(col == NULL) col = tcol;
     else if(col != NULL && tcol != NULL){
@@ -103,7 +103,7 @@ GeometryNode::~GeometryNode()
 }
  
 
-Intersection* GeometryNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans){
+Intersection* GeometryNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans, MasterTempo* mt){
   Intersection* inter = m_primitive->getIntersection(rayP, rayV, trans);
   if(inter != NULL) inter->setMaterial(m_material);
   return inter;

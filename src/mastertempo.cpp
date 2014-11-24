@@ -11,20 +11,21 @@ using namespace stk;
 using namespace std;
 
 
+#define MIDI_FRAME_DELAY -1
+
 
 void MasterTempo::updateFrame(int frame){
-	currentFrame = frame;
+	currentFrame = frame - MIDI_FRAME_DELAY;
+	if(currentFrame < 0) currentFrame = 0;
 	updateState();
 }
 
 void MasterTempo::updateState(){
 	double currentTime = ((double)currentFrame)/fps;
-	//cout << "\nUpdate state for time " << currentTime << "\n";
 
 	for(vector<MidiEvent>::iterator mev = midiEvents.begin(); mev != midiEvents.end(); ++mev){
 		MidiEvent e = (*mev);
 		if(e.getEventTime() > currentTime) break;
-		//e.printEvent();
 		int eId = e.getNote();
 		bool eStatus = e.isNoteOn();
 		float eVel = e.getVel();
@@ -49,6 +50,8 @@ bool MasterTempo::decodeMidi(){
 	// not sure why we need to multiply by 2 here, but doing 60.0/bpm yields only
 	// half as much as it should, so this'll have to do for now... (in SMF0 the bpm
 	// info isn't stored apparently, so that needs manual input)
+	//
+	// UPDATE: was making the animation 2x as 
 	secondsPerTick = midiFile.getTickSeconds(0) * (120.0 / bpm);
 
 	double currentTickValue = 0;

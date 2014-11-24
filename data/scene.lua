@@ -1,7 +1,7 @@
 -- A simple scene with some miscellaneous geometry.
 
 black = gr.material({0.1, 0.1, 0.1}, {1.0, 1.0, 1.0}, 70)
-white = gr.material({1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, 3)
+white = gr.material({1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, 0)
 glass = gr.material({0.0, 0.24, 0.2}, {0.7, 1.0, 0.8}, 400)
 
 red = gr.material({1.0, 0.0, 0.0}, {0.5, 0.7, 0.5}, 30)

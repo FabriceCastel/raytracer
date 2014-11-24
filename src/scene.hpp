@@ -5,6 +5,7 @@
 #include "algebra.hpp"
 #include "primitive.hpp"
 #include "material.hpp"
+#include "mastertempo.hpp"
 
 class SceneNode {
 public:
@@ -36,7 +37,7 @@ public:
     m_children.remove(child);
   }
 
-  virtual Intersection* intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans);
+  virtual Intersection* intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans, MasterTempo* mt);
 
   // Callbacks to be implemented.
   // These will be called from Lua.
@@ -88,7 +89,7 @@ public:
                Primitive* primitive);
   virtual ~GeometryNode();
 
-  virtual Intersection* intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans);
+  virtual Intersection* intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans, MasterTempo* mt);
 
   const Material* get_material() const;
   Material* get_material();

@@ -5,6 +5,7 @@
 #include <iosfwd>
 #include "primitive.hpp"
 #include "algebra.hpp"
+#include "mastertempo.hpp"
 
 // A polygonal mesh.
 class Mesh : public Primitive {

@@ -3,7 +3,7 @@
 
 #include "algebra.hpp"
 #include "material.hpp"
-
+#include "mastertempo.hpp"
 
 class Intersection {
 public:

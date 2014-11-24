@@ -21,8 +21,8 @@ void a4_render(// What to render
                );
 
 
-Vector3D shade(Vector3D fc, std::list<Light*> lights, Intersection* col, Point3D eye, SceneNode* root);
+Vector3D shade(Vector3D fc, std::list<Light*> lights, Intersection* col, Point3D eye, SceneNode* root, MasterTempo* mt);
 
-void applySinCityFilter(double* rbuf, int height, int width);
+void applySinCityFilter(double* rbuf, int height, int width, double filterWeight);
 
 #endif

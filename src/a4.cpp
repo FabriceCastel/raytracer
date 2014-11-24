@@ -23,7 +23,7 @@ void printProgBar( int percent ){
 	std::cout<< percent << "%     " << std::flush;
 }
 
-#define FRAME_COUNT 100
+//#define FRAME_COUNT (30 * 71.7)
 
 void a4_render(// What to render
 	SceneNode* root,
@@ -40,11 +40,15 @@ void a4_render(// What to render
 	)
 {
 
-	int framerate = 15;
-	MasterTempo masterTempo = MasterTempo("../data/1.mid", 143.0, framerate, 1);
+	int framerate = 25;
+	const double FRAME_COUNT = framerate * 71.7;
+	MasterTempo masterTempo = MasterTempo("../data/1.mid", 174.0, framerate, 1);
 	int SSAAFactor = 1;
 	height *= SSAAFactor;
 	width *= SSAAFactor;
+
+	double filterWeight = 0;
+	double filterRelease = 3.0/framerate;
 
 	double *rbuffer = (double*)malloc(sizeof(double)*3*width*height);
 	int rbufferindex = 0;
@@ -53,7 +57,7 @@ void a4_render(// What to render
 	const long double renderStartTime = time(0);
 	long double previousFrameFinishTime = renderStartTime;
 
-	for(int frame = 1; frame <= FRAME_COUNT; frame++){
+	for(int frame = 120; frame <= FRAME_COUNT; frame++){
 		masterTempo.updateFrame(frame);
 		rbufferindex=0;
 
@@ -74,7 +78,7 @@ void a4_render(// What to render
 				v.normalize();
 				bool rayWasRefracted = false;
 
-				Intersection* col = root->intersect(pixel, v, Matrix4x4());
+				Intersection* col = root->intersect(pixel, v, Matrix4x4(), &masterTempo);
 				Intersection* initHit = (Intersection*)malloc(sizeof(Intersection));
 				*initHit = Intersection(col->getPoint(), col->getNormal(), col->getMaterial());
 				initHit->setRefraction(col->isRefraction());
@@ -86,7 +90,7 @@ void a4_render(// What to render
 					normal.normalize();
 					Vector3D refAngle = col->getRefAngle();
 					free(col);
-					col = root->intersect(point, refAngle, Matrix4x4());
+					col = root->intersect(point, refAngle, Matrix4x4(), &masterTempo);
 					rayWasRefracted = true;
 				}
 
@@ -104,7 +108,7 @@ void a4_render(// What to render
 
 					Vector3D fc = Vector3D(0,0,0);//Vector3D(ambient.R()*kd.R(), ambient.G()*kd.G(), ambient.B()*kd.B());
 
-					fc = shade(fc, lights, col, eye, root);
+					fc = shade(fc, lights, col, eye, root, &masterTempo);
 					fc.cap(1.0);
 
 					if(rayWasRefracted){
@@ -127,7 +131,7 @@ void a4_render(// What to render
 						Colour glassKD = initHit->getMaterial()->getKD();
 						Vector3D glassDiff = Vector3D(glassKD.R(), glassKD.G(), glassKD.B());
 						Vector3D glassSpec = Vector3D(0.0, 0.0, 0.0);
-						glassDiff = shade(glassDiff, lights, initHit, eye, root);
+						glassDiff = shade(glassDiff, lights, initHit, eye, root, &masterTempo);
 
 						//
 						// Hacky way of calculating ONLY the specular part (use black diffuse and white spec)
@@ -138,7 +142,7 @@ void a4_render(// What to render
 						double shine = initHit->getMaterial()->getShininess();
 						Material* onlySpec = (Material*) new PhongMaterial(black, white, shine);
 						glassSpecI.setMaterial(onlySpec);
-						glassSpec = shade(glassSpec, lights, &glassSpecI, eye, root);
+						glassSpec = shade(glassSpec, lights, &glassSpecI, eye, root, &masterTempo);
 						delete(onlySpec);
 						//
 						// </hack>
@@ -162,17 +166,23 @@ void a4_render(// What to render
 			}
 		}
 
-		if(masterTempo.getNoteStatus(12)){
-			applySinCityFilter(rbuffer, height, width);
-		}
+		if(masterTempo.getNoteStatus(0))
+			filterWeight = 1.0;
+		else if(filterWeight > 0)
+			filterWeight -= filterRelease;
+		if(filterWeight < 0)
+			filterWeight = 0;
+
+		if(filterWeight > 0)
+			applySinCityFilter(rbuffer, height, width, filterWeight);
 
 		long double delay = previousFrameFinishTime;
 		previousFrameFinishTime = time(0);
 		delay = previousFrameFinishTime - delay;
-
+		long ttime = previousFrameFinishTime - renderStartTime;
 
 		printProgBar((frame*100)/FRAME_COUNT);
-		std::cout << "  frame " << frame << " of " << FRAME_COUNT << " in " << delay << "s";
+		std::cout << "  frame " << frame << " of " << FRAME_COUNT << " in " << delay << "s" << " - total: " << ttime/3600 << ":" << (ttime/60)%60 << ":" << ttime%60;
 
 
 		Image img(width/SSAAFactor, height/SSAAFactor, 3);
@@ -219,16 +229,23 @@ void a4_render(// What to render
 	ss << "ffmpeg -i \%09d.png -framerate ";
 	ss << framerate;
 	ss << " -y -f avi -b 1.5M -s " << width/SSAAFactor << "x" << height/SSAAFactor;
-	ss << " " << filename << ".avi";
+	ss << " temp.avi";
 	const char* ffmpegCommand = ss.str().c_str();
 	cout << "\n\n";
 	system(ffmpegCommand);
-	system("rm *.png");
-	system("clear");
+
+	stringstream sa;
+	sa << "ffmpeg -i temp.avi -i audio.wav -y -f avi -b 1.5M -s " << width/SSAAFactor << "x" << height/SSAAFactor << " " << filename << ".avi";
+	const char* ffmpegAudio = sa.str().c_str();
+	
+	cout << "\n\n";
+	system(ffmpegAudio);
+	//system("rm *.png");
+	//system("clear");
 	cout << "Render complete: " << filename << ".avi\n";
 }
 
-void applySinCityFilter(double* rbuf, int height, int width){
+void applySinCityFilter(double* rbuf, int height, int width, double filterWeight){
 	// string alig = "../data/ali_g.png";
 	// Image ali;
 	// ali.loadPng(alig);
@@ -257,16 +274,16 @@ void applySinCityFilter(double* rbuf, int height, int width){
 			}
 
 
-			rbuf[bufIndex    ] = final[0];
-			rbuf[bufIndex + 1] = final[1];
-			rbuf[bufIndex + 2] = final[2];
+			rbuf[bufIndex    ] = filterWeight*final[0] + (1 - filterWeight)*orig[0];
+			rbuf[bufIndex + 1] = filterWeight*final[1] + (1 - filterWeight)*orig[1];
+			rbuf[bufIndex + 2] = filterWeight*final[2] + (1 - filterWeight)*orig[2];
 			bufIndex += 3;
 		}
 	}
 }
 
 
-Vector3D shade(Vector3D fc, std::list<Light*> lights, Intersection* col, Point3D eye, SceneNode* root){
+Vector3D shade(Vector3D fc, std::list<Light*> lights, Intersection* col, Point3D eye, SceneNode* root, MasterTempo* mt){
 	Material *mat = col->getMaterial();
 	Colour ks = mat->getKS();
 	Colour kd = mat->getKD();
@@ -287,7 +304,7 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Intersection* col, Point3D
 			point[2] + fp2*normal[2]);
 		Vector3D pointToLight = lpos - point;
 		pointToLight.normalize();
-		Intersection* shadow = NULL;//root->intersect(point2, pointToLight, Matrix4x4());
+		Intersection* shadow = root->intersect(point2, pointToLight, Matrix4x4(), mt);
 		if(shadow == NULL){
 			Colour lightColour = (*I)->colour;
 			Vector3D lcol = Vector3D(lightColour.R(), lightColour.G(), lightColour.B());
@@ -336,7 +353,7 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Intersection* col, Point3D
 	    	blinnSpec = blinnTerm * specColour;
 
 
-	    	fc = fc + diffuse + blinnSpec;
+	    	fc = fc + diffuse + (shininess != 0 ? blinnSpec : 0*blinnSpec);
 	    	//fc = Vector3D(blinnSpec[0], spec[0], 0);
 	    } else {
 	    	// the light doesn't contribute to the surface

@@ -16,6 +16,10 @@ Objectives:
 
 A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
 
+# November 24th - 11:30am
+
+I've successfully generated an output video that syncs up with the MIDI input and uses a linear release envelope to smoothen out the applied filter on the snare hits. There were some issues with ffmpeg sticking to 25fps despite having -r 30 set, but it's not much of a concern now. I'll stick to 25fps and make note of finding a fix for that to allow for variable frame rates in the future.
+
 # November 19th - 9:15pm
 
 MIDI input works now. All that's left to do with regards to that is passing the info through the intersection method and have the concerned objects check the MIDI state for the given frame to decide whatever it is they need to decide. Oh and allowing the user to specify what note to attach to what parameter with the Lua script. Not bad, not bad. I meant to post an exapmle video with the Sin City filter getting triggered on and off but youtube wouldn't take my output .avi for reasons unknown to me.
