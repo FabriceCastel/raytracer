@@ -358,7 +358,7 @@ int gr_render_cmd(lua_State* L)
     lua_pop(L, 1);
   }
 
-  a4_render(root->node, filename, width, height,
+  render(root->node, filename, width, height,
             eye, view, up, fov,
             ambient, lights);
   

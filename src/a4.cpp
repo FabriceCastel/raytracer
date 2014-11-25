@@ -4,6 +4,9 @@
 #include <ctime>
 #include <stdlib.h>
 #include <sstream>
+#include <pthread.h>
+
+#define NUM_THREADS 16
 
 void printProgBar( int percent ){
 	std::string bar;
@@ -25,7 +28,137 @@ void printProgBar( int percent ){
 
 //#define FRAME_COUNT (30 * 71.7)
 
-void a4_render(// What to render
+void *renderNextStrip(void *params){
+	StripRenderParams* renderParams = (StripRenderParams*) params;
+
+    int height = renderParams->getHeight();
+
+	int y = renderParams->getNextRow();
+	MasterTempo* mt = renderParams->getMt();
+	SceneNode* root = renderParams->getRoot();
+    int width = renderParams->getWidth();
+    Point3D eye = renderParams->getEye();
+    Vector3D view = renderParams->getView();
+    Vector3D up = renderParams->getUp();
+    double fov = renderParams->getFov();
+    Colour ambient = renderParams->getAmbient();
+    std::list<Light*> lights = renderParams->getLights();
+    double* rbuffer = renderParams->getRbuffer();
+
+	while(y < height){
+		//cout << "Rendering " << y << "\n";
+		for(int x = 0; x < width; x++){
+			int rbufferindex = 3*(y*width + x);
+			double fovx = M_PI * ((double)fov/360.0);
+			double fovy = (double)height/width * fovx;
+
+			Point3D pixel = Point3D();
+			pixel[0] = (2.0*x - width)/width * tan(fovx);
+			pixel[1] = (-1 * (2.0*y - height)/height) * tan(fovy);
+			pixel[2] = eye[2] - 1.0;
+
+			Vector3D v = pixel - eye;
+
+			v.normalize();
+			bool rayWasRefracted = false;
+
+			Intersection* col = root->intersect(pixel, v, Matrix4x4(), mt);
+			Intersection* initHit = NULL;
+
+			if(col == NULL){
+				rbuffer[rbufferindex++] = 1;
+				rbuffer[rbufferindex++] = 1;
+				rbuffer[rbufferindex++] = 1;
+			} else {
+				initHit = (Intersection*)malloc(sizeof(Intersection));
+				*initHit = Intersection(col->getPoint(), col->getNormal(), col->getMaterial());
+				initHit->setRefraction(col->isRefraction());
+				initHit->setRefAngle(col->getRefAngle());
+
+				while(col != NULL && col->isRefraction()){
+					Point3D point = col->getPoint();
+					Vector3D normal = col->getNormal();
+					normal.normalize();
+					Vector3D refAngle = col->getRefAngle();
+					free(col);
+					col = root->intersect(point, refAngle, Matrix4x4(), mt);
+					rayWasRefracted = true;
+				}
+
+				Vector3D fc = Vector3D(1,1,1);
+
+				if(col != NULL) {
+					Material *mat = col->getMaterial();
+					Colour kd = mat->getKD();
+
+					fc = Vector3D(0,0,0);
+
+					fc = shade(fc, lights, ambient, col, eye, root, mt);
+					fc.cap(1.0);
+				}
+
+
+				if(rayWasRefracted){
+					double opacityFactor = initHit->getNormal().dot(v);
+					if(opacityFactor < 0) opacityFactor *= -1;
+
+					if(opacityFactor > 1){
+						std::cout << "opacityFactor = " << opacityFactor << "\n";
+						exit(1);
+					}
+
+					opacityFactor = 1 - opacityFactor;
+					opacityFactor = pow(opacityFactor, 3) + pow(opacityFactor + 0.1, 5);
+					opacityFactor /= 2.0;
+					if(opacityFactor > 1) opacityFactor = 1;
+					//opacityFactor = 1 - opacityFactor;
+					
+
+					double transparancy = 0.9 * (1.0 - opacityFactor);//300.0 / glassTraversed;
+					Colour glassKD = initHit->getMaterial()->getKD();
+					Vector3D glassDiff = Vector3D(glassKD.R(), glassKD.G(), glassKD.B());
+					Vector3D glassSpec = Vector3D(0.0, 0.0, 0.0);
+					glassDiff = shade(glassDiff, lights, ambient, initHit, eye, root, mt);
+
+					//
+					// Hacky way of calculating ONLY the specular part (use black diffuse and white spec)
+					//
+					Intersection glassSpecI = (*initHit);
+					const Colour black = Colour(0.0, 0.0, 0.0);
+					const Colour white = Colour(1.0, 1.0, 1.0);
+					double shine = initHit->getMaterial()->getShininess();
+					Material* onlySpec = (Material*) new PhongMaterial(black, white, shine);
+					glassSpecI.setMaterial(onlySpec);
+					glassSpec = shade(glassSpec, lights, ambient, &glassSpecI, eye, root, mt);
+					delete(onlySpec);
+					//
+					// </hack>
+					//
+
+					glassDiff.cap(1.0);
+					fc = (transparancy*fc) + ((1.0-transparancy)*glassDiff) + glassSpec;
+
+					// Sphere has radius 200
+					//fc = (1.0 / (glassTraversed / 400.0)) * Vector3D(1.0, 1.0, 1.0);
+				}
+
+				fc.cap(1.0);
+
+				rbuffer[rbufferindex++] = fc[0];
+				rbuffer[rbufferindex++] = fc[1];
+				rbuffer[rbufferindex++] = fc[2];
+
+			}
+			free(col);
+			free(initHit);
+		}
+		y = renderParams->getNextRow();
+	}
+	pthread_exit(NULL);
+	return NULL;
+}
+
+void render(// What to render
 	SceneNode* root,
                // Where to output the image
 	const std::string& filename,
@@ -48,7 +181,7 @@ void a4_render(// What to render
 	width *= SSAAFactor;
 
 	double filterWeight = 0;
-	double filterRelease = 3.0/framerate;
+	double filterRelease = 5.0/framerate;
 
 	double *rbuffer = (double*)malloc(sizeof(double)*3*width*height);
 	int rbufferindex = 0;
@@ -57,114 +190,44 @@ void a4_render(// What to render
 	const long double renderStartTime = time(0);
 	long double previousFrameFinishTime = renderStartTime;
 
-	for(int frame = 120; frame <= FRAME_COUNT; frame++){
+	for(int frame = 1; frame <= FRAME_COUNT; frame++){
 		masterTempo.updateFrame(frame);
 		rbufferindex=0;
 
+		//
+		// RENDER GEOMETRY
+		//
+		StripRenderParams params = StripRenderParams(root, width, height,
+           eye, view, up, fov, ambient, lights, &masterTempo, rbuffer);
 
+		pthread_t threads[NUM_THREADS];
+		pthread_attr_t attr;
+		void *status;
+		int rc;
+		int i;
 
-		for(int y = 0; y < height; y++){
-			for(int x = 0; x < width; x++){
-				double fovx = M_PI * ((double)fov/360.0);
-				double fovy = (double)height/width * fovx;
+		pthread_attr_init(&attr);
+		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-				Point3D pixel = Point3D();
-				pixel[0] = (2.0*x - width)/width * tan(fovx);
-				pixel[1] = (-1 * (2.0*y - height)/height) * tan(fovy);
-				pixel[2] = eye[2] - 1.0;
-
-				Vector3D v = pixel - eye;
-
-				v.normalize();
-				bool rayWasRefracted = false;
-
-				Intersection* col = root->intersect(pixel, v, Matrix4x4(), &masterTempo);
-				Intersection* initHit = (Intersection*)malloc(sizeof(Intersection));
-				*initHit = Intersection(col->getPoint(), col->getNormal(), col->getMaterial());
-				initHit->setRefraction(col->isRefraction());
-				initHit->setRefAngle(col->getRefAngle());
-
-				while(col != NULL && col->isRefraction()){
-					Point3D point = col->getPoint();
-					Vector3D normal = col->getNormal();
-					normal.normalize();
-					Vector3D refAngle = col->getRefAngle();
-					free(col);
-					col = root->intersect(point, refAngle, Matrix4x4(), &masterTempo);
-					rayWasRefracted = true;
-				}
-
-	      //col->setPoint(initHit->getPoint());
-	      //col->setNormal(initHit->getNormal());
-	      //if(TEST != 0) exit(1);
-
-				if(col == NULL){
-					rbuffer[rbufferindex++] = 0;//-0.3 + (double)y/height;
-					rbuffer[rbufferindex++] = 0;//0.4 + 0.2*(double)x/width;
-					rbuffer[rbufferindex++] = 0;//0.6;
-				} else {
-					Material *mat = col->getMaterial();
-					Colour kd = mat->getKD();
-
-					Vector3D fc = Vector3D(0,0,0);//Vector3D(ambient.R()*kd.R(), ambient.G()*kd.G(), ambient.B()*kd.B());
-
-					fc = shade(fc, lights, col, eye, root, &masterTempo);
-					fc.cap(1.0);
-
-					if(rayWasRefracted){
-						double opacityFactor = initHit->getNormal().dot(v);
-						if(opacityFactor < 0) opacityFactor *= -1;
-
-						if(opacityFactor > 1){
-							std::cout << "opacityFactor = " << opacityFactor << "\n";
-							exit(1);
-						}
-
-						opacityFactor = 1 - opacityFactor;
-						opacityFactor = pow(opacityFactor, 3) + pow(opacityFactor + 0.1, 5);
-						opacityFactor /= 2.0;
-						if(opacityFactor > 1) opacityFactor = 1;
-						//opacityFactor = 1 - opacityFactor;
-						
-
-						double transparancy = 0.9 * (1.0 - opacityFactor);//300.0 / glassTraversed;
-						Colour glassKD = initHit->getMaterial()->getKD();
-						Vector3D glassDiff = Vector3D(glassKD.R(), glassKD.G(), glassKD.B());
-						Vector3D glassSpec = Vector3D(0.0, 0.0, 0.0);
-						glassDiff = shade(glassDiff, lights, initHit, eye, root, &masterTempo);
-
-						//
-						// Hacky way of calculating ONLY the specular part (use black diffuse and white spec)
-						//
-						Intersection glassSpecI = (*initHit);
-						const Colour black = Colour(0.0, 0.0, 0.0);
-						const Colour white = Colour(1.0, 1.0, 1.0);
-						double shine = initHit->getMaterial()->getShininess();
-						Material* onlySpec = (Material*) new PhongMaterial(black, white, shine);
-						glassSpecI.setMaterial(onlySpec);
-						glassSpec = shade(glassSpec, lights, &glassSpecI, eye, root, &masterTempo);
-						delete(onlySpec);
-						//
-						// </hack>
-						//
-
-						glassDiff.cap(1.0);
-						fc = (transparancy*fc) + ((1.0-transparancy)*glassDiff) + glassSpec;
-
-						// Sphere has radius 200
-						//fc = (1.0 / (glassTraversed / 400.0)) * Vector3D(1.0, 1.0, 1.0);
-					}
-
-					fc.cap(1.0);
-
-					rbuffer[rbufferindex++] = fc[0];
-					rbuffer[rbufferindex++] = fc[1];
-					rbuffer[rbufferindex++] = fc[2];
-				}
-				free(col);
-				free(initHit);
+		for(i = 0; i < NUM_THREADS; i++){
+			rc = pthread_create(&threads[i], NULL, renderNextStrip, (void*)&params);
+			if(rc){
+				cout << "ERROR: unable to create thread, " << rc << "\n";
+				exit(1);
 			}
 		}
+
+		pthread_attr_destroy(&attr);
+		for(i = 0; i < NUM_THREADS; i++){
+			rc = pthread_join(threads[i], &status);
+			if(rc){
+				cout << "ERROR: unable to join, " << rc << "\n";
+				exit(1);
+			}
+		}
+		//
+		// RENDER GEOMETRY
+		//
 
 		if(masterTempo.getNoteStatus(0))
 			filterWeight = 1.0;
@@ -241,7 +304,7 @@ void a4_render(// What to render
 	cout << "\n\n";
 	system(ffmpegAudio);
 	//system("rm *.png");
-	//system("clear");
+	system("clear");
 	cout << "Render complete: " << filename << ".avi\n";
 }
 
@@ -283,7 +346,7 @@ void applySinCityFilter(double* rbuf, int height, int width, double filterWeight
 }
 
 
-Vector3D shade(Vector3D fc, std::list<Light*> lights, Intersection* col, Point3D eye, SceneNode* root, MasterTempo* mt){
+Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersection* col, Point3D eye, SceneNode* root, MasterTempo* mt){
 	Material *mat = col->getMaterial();
 	Colour ks = mat->getKS();
 	Colour kd = mat->getKD();
@@ -292,6 +355,8 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Intersection* col, Point3D
 	Point3D point = col->getPoint();
 	Vector3D normal = col->getNormal();
 	normal.normalize();
+
+	fc = Vector3D(ambient.R()*kd.R(), ambient.G()*kd.G(), ambient.B()*kd.B());
 
 	for (std::list<Light*>::iterator I = lights.begin(); I != lights.end(); ++I) {
 		Point3D lpos = (*I)->position;
