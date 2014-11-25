@@ -26,6 +26,10 @@ box = gr.nh_box('box', {80, -50, -900}, 400)
 scene_root:add_child(box)
 box:set_material(orange)
 
+box4 = gr.nh_box('box4', {-400, -40, -40}, 80)
+scene_root:add_child(box4)
+box4:set_material(indigo)
+
 box2 = gr.nh_box('box2', {-400, -0, -1200}, 300)
 scene_root:add_child(box2)
 box2:set_material(green)
@@ -39,5 +43,5 @@ white_light = gr.light({-200.0, 800.0, 600.0}, {0.9, 0.9, 0.9}, {1, 0, 0})
 orange_light = gr.light({400.0, 100.0, 0.0}, {0.7, 0.0, 0.7}, {1, 0, 0})
 
 gr.render(scene_root, 'sample', 700, 500,
-	  {0, 0, 800}, {0, 0, -1}, {0, 1, 0}, 50,
+	  {0, 0, 1200}, {0, 0, -1}, {0, 1, 0}, 50,
 	  {0.3, 0.3, 0.3}, {white_light})
