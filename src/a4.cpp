@@ -6,7 +6,7 @@
 #include <sstream>
 #include <pthread.h>
 
-#define NUM_THREADS 16
+#define NUM_THREADS 1
 
 void printProgBar( int percent ){
 	std::string bar;
@@ -174,7 +174,7 @@ void render(// What to render
 {
 
 	int framerate = 25;
-	const double FRAME_COUNT = framerate * 71.7;
+	const double FRAME_COUNT = 500;//framerate * 71.7;
 	MasterTempo masterTempo = MasterTempo("../data/1.mid", 174.0, framerate, 1);
 	int SSAAFactor = 1;
 	height *= SSAAFactor;

@@ -18,7 +18,14 @@ A ray tracer written for CS488, to be extended as a final project due Dec 1st 20
 
 # November 25th - 11:00am
 
-Multithreading is in place, it's sped up render times considerably (close to a 3x factor). As far as performance is concerned there are still some minor memory issues to deal with. Overall it's looking pretty good though.
+Multithreading is in place, it's sped up render times considerably. As far as performance is concerned there are still some minor memory issues to deal with. Overall it's looking pretty good though.
+
+Here are some stats for a 500 frame render.
+
+|                        | Single thread | 16 threads |
+|------------------------|---------------|------------|
+| Average time per frame | 1.39s         | 0.54s      |
+| Total time             | 11:34         | 4:30       |
 
 # November 24th - 11:30am
 
