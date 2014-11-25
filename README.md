@@ -9,9 +9,9 @@ Objectives:
 4. ~~Post-processing filter~~
 5. ~~Refraction~~
 6. ~~Blinn-Phong lighting (to replace current Phong model)~~
-7. Generate animation frames based off MIDI input [IN PROGRESS]
+7. ~~Generate animation frames based off MIDI input~~
 8. Particle system
-9. Optimize raytracer with multithreading
+9. ~~Optimize raytracer with multithreading~~
 10. 4th degree implicit surface primitive with genus > 0
 
 A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
