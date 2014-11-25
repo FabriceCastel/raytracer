@@ -4,7 +4,7 @@ DEPENDS = $(SOURCES:.cpp=.d)
 #LDFLAGS = $(shell pkg-config --libs lua5.1) -llua -lpng
 LDFLAGS = -llua -lpng
 #CPPFLAGS = $(shell pkg-config --cflags lua5.1)
-CXXFLAGS = $(CPPFLAGS) -W -Wall -g -O3
+CXXFLAGS = $(CPPFLAGS) -W -Wall -std=c++11 -g -O3
 CXX = g++
 MAIN = rt
 

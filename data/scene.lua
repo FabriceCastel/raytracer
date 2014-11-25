@@ -14,13 +14,13 @@ violet = gr.material({0.6, 0.0, 1.0}, {0.5, 0.7, 0.5}, 110)
 
 scene_root = gr.node('root')
 
-ground = gr.nh_box('ground', {-3000, -10300, -7000}, 10000)
-scene_root:add_child(ground)
-ground:set_material(white)
+--ground = gr.nh_box('ground', {-3000, -10300, -7000}, 10000)
+--scene_root:add_child(ground)
+--ground:set_material(white)
 
-wall = gr.nh_box('wall', {-3500, -500, -10000}, 7000)
+wall = gr.nh_box('wall', {-3500, -3500, -10000}, 7000)
 scene_root:add_child(wall)
-wall:set_material(white)
+wall:set_material(violet)
 
 box = gr.nh_box('box', {80, -50, -900}, 400)
 scene_root:add_child(box)
@@ -38,6 +38,6 @@ s1:set_material(glass)
 white_light = gr.light({-200.0, 800.0, 600.0}, {0.9, 0.9, 0.9}, {1, 0, 0})
 orange_light = gr.light({400.0, 100.0, 0.0}, {0.7, 0.0, 0.7}, {1, 0, 0})
 
-gr.render(scene_root, 'sample', 500, 500,
+gr.render(scene_root, 'sample', 700, 500,
 	  {0, 0, 800}, {0, 0, -1}, {0, 1, 0}, 50,
 	  {0.3, 0.3, 0.3}, {white_light})
