@@ -32,6 +32,10 @@ Intersection* Primitive::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 
 }
 
 Intersection* NonhierBox::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans){
+  //rayP = trans*rayP;//trans.invert() * rayP;
+  //rayV = trans*rayV;//trans.invert() * rayV;
+
+
   //m_pos
   //m_size
   // The box has one corner at m_pos and the opposite corner at m_pos + vec3(m_size)

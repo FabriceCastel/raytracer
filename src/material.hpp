@@ -11,6 +11,8 @@ public:
   virtual Colour getKD();
   virtual double getShininess();
 
+  virtual void setKD(Colour col);
+
 protected:
   Material()
   {
@@ -26,6 +28,7 @@ public:
   virtual Colour getKS(){ return m_ks; };
   virtual Colour getKD(){ return m_kd; };
   virtual double getShininess(){ return m_shininess; };
+  virtual void setKD(Colour col){m_kd = col;};
 
 private:
   Colour m_kd;

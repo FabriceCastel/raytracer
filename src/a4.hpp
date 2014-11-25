@@ -29,11 +29,11 @@ public:
      StripRenderParams(SceneNode* root, int width, int height,
                Point3D eye, Vector3D view, Vector3D up, double fov,
                Colour ambient, std::list<Light*> lights, MasterTempo* mt,
-               double* rbuffer) : 
+               double* rbuffer, Matrix4x4 world) : 
           root(root), width(width), height(height),
           eye(eye), view(view), up(up), fov(fov),
           ambient(ambient), lights(lights), mt(mt),
-          rbuffer(rbuffer), nextRow(0) {}
+          rbuffer(rbuffer), nextRow(0), world(world) {}
 
      SceneNode* getRoot(){return root;};
      int getWidth(){return width;};
@@ -46,6 +46,7 @@ public:
      std::list<Light*> getLights(){return lights;};
      MasterTempo* getMt(){return mt;};
      double* getRbuffer(){return rbuffer;};
+     Matrix4x4 getWorld(){return world;};
 
      int getNextRow(){
           mutex mtx;
@@ -65,6 +66,7 @@ private:
      std::list<Light*> lights;
      MasterTempo* mt;
      double* rbuffer;
+     Matrix4x4 world;
 
      int nextRow;
 };
@@ -72,5 +74,6 @@ private:
 Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersection* col, Point3D eye, SceneNode* root, MasterTempo* mt);
 
 void applySinCityFilter(double* rbuf, int height, int width, double filterWeight);
+void applyCocaineFilter(double* rbuf, int h, int w);
 
 #endif

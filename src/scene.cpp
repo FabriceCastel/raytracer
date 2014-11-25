@@ -104,6 +104,13 @@ GeometryNode::~GeometryNode()
  
 
 Intersection* GeometryNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans, MasterTempo* mt){
+  if(std::strcmp(m_name.c_str(), "wall") == 0){
+    if(mt->getNoteStatus(2)){
+      m_material->setKD(Colour(0.05,0.05,0.05));
+    } else {
+      m_material->setKD(Colour(0.5, 0.7, 0.5));
+    }
+  }
   Intersection* inter = m_primitive->getIntersection(rayP, rayV, trans);
   if(inter != NULL) inter->setMaterial(m_material);
   return inter;

@@ -373,6 +373,8 @@ public:
   {
     return begin() + 16;
   }
+
+  Matrix4x4 rotateX(double angle);
 		
 private:
   double v_[16];
