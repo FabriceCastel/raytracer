@@ -16,6 +16,10 @@ Objectives:
 
 A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
 
+# November 25th - 11:00am
+
+Multithreading is in place, it's sped up render times considerably (close to a 3x factor). As far as performance is concerned there are still some minor memory issues to deal with. Overall it's looking pretty good though.
+
 # November 24th - 11:30am
 
 I've successfully generated an output video that syncs up with the MIDI input and uses a linear release envelope to smoothen out the applied filter on the snare hits. There were some issues with ffmpeg sticking to 25fps despite having -r 30 set, but it's not much of a concern now. I'll stick to 25fps and make note of finding a fix for that to allow for variable frame rates in the future.
