@@ -15,6 +15,15 @@
 #include "algebra.hpp"
 #include <math.h>
 
+Matrix4x4 Matrix4x4::rotateX(double angle){
+  double ang = M_PI * angle/180.0;
+  Matrix4x4 rotation(Vector4D(1,0,0,0),
+                     Vector4D(0,cos(-ang),-sin(-ang),0),
+                     Vector4D(0,sin(ang),cos(-ang),0),
+                     Vector4D(0,0,0,1));
+  return rotation*(*this);
+}
+
 double clamp(double val, double lowerBound, double upperBound){
   if(val > upperBound) val = upperBound;
   if(val < lowerBound) val = lowerBound;

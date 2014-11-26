@@ -4,4 +4,5 @@ rt
 src/rt
 src/*.png
 src/*.avi
+*.wav
 *DS_Store

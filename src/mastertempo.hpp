@@ -70,6 +70,7 @@ public:
 	bool decodeMidi();
 	void printMidiEvents();
 	void updateFrame(int frame);
+	int getCurrentFrame(){return currentFrame;};
 
 private:
 	bool initialized;

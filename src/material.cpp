@@ -28,6 +28,9 @@ Colour Material::getKD(){
   return b;
 }
 
+void Material::setKD(Colour col){
+	return;
+}
 
 double Material::getShininess(){
   return 0.0;

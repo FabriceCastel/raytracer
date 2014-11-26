@@ -32,6 +32,10 @@ Intersection* Primitive::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 
 }
 
 Intersection* NonhierBox::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans){
+  //rayP = trans*rayP;//trans.invert() * rayP;
+  //rayV = trans*rayV;//trans.invert() * rayV;
+
+
   //m_pos
   //m_size
   // The box has one corner at m_pos and the opposite corner at m_pos + vec3(m_size)
@@ -335,9 +339,9 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
 
   //if(false) return ans; // IF THE OBJECT IS NOT TRANSPARENT
 
-  ans->setRefraction(true);
-  Vector3D rf = refraction(1.6, ans->getNormal(), rayP, ans->getPoint());
-  ans->setRefAngle(rf);
+  // ans->setRefraction(true);
+  // Vector3D rf = refraction(1.6, ans->getNormal(), rayP, ans->getPoint());
+  // ans->setRefAngle(rf);
 
   //Intersection* a2 = intersectHeightMap(rayP, rayV, trans, m_pos, m_radius);
 

@@ -6,7 +6,7 @@
 #include <sstream>
 #include <pthread.h>
 
-#define NUM_THREADS 1
+#define NUM_THREADS 8
 
 void printProgBar( int percent ){
 	std::string bar;
@@ -44,6 +44,7 @@ void *renderNextStrip(void *params){
     Colour ambient = renderParams->getAmbient();
     std::list<Light*> lights = renderParams->getLights();
     double* rbuffer = renderParams->getRbuffer();
+    Matrix4x4 world = renderParams->getWorld();
 
 	while(y < height){
 		//cout << "Rendering " << y << "\n";
@@ -62,7 +63,7 @@ void *renderNextStrip(void *params){
 			v.normalize();
 			bool rayWasRefracted = false;
 
-			Intersection* col = root->intersect(pixel, v, Matrix4x4(), mt);
+			Intersection* col = root->intersect(pixel, v, world, mt);
 			Intersection* initHit = NULL;
 
 			if(col == NULL){
@@ -81,7 +82,7 @@ void *renderNextStrip(void *params){
 					normal.normalize();
 					Vector3D refAngle = col->getRefAngle();
 					free(col);
-					col = root->intersect(point, refAngle, Matrix4x4(), mt);
+					col = root->intersect(point, refAngle, world, mt);
 					rayWasRefracted = true;
 				}
 
@@ -95,6 +96,7 @@ void *renderNextStrip(void *params){
 
 					fc = shade(fc, lights, ambient, col, eye, root, mt);
 					fc.cap(1.0);
+					free(col);
 				}
 
 
@@ -149,7 +151,7 @@ void *renderNextStrip(void *params){
 				rbuffer[rbufferindex++] = fc[2];
 
 			}
-			free(col);
+			
 			free(initHit);
 		}
 		y = renderParams->getNextRow();
@@ -172,33 +174,45 @@ void render(// What to render
 	const std::list<Light*>& lights
 	)
 {
+	//ParticleSystem ps("snow", Vector3D(0, -0.00001, 0), Point3D(0,0,0), 200.0, 1.0);
+	
+	// cout << "TEST\n";
+	// ParticleSystem ptest = ParticleSystem("snow", Vector3D(0, -0.00001, 0), Point3D(0,0,0), 200.0, 1.0);
+	// cout << "TESTSTST\n";
+	// ParticleSystem* ps = (ParticleSystem*)malloc(sizeof(ptest));
+	// *ps = ptest;
+
+	// cout << "TEST\n";
+	// //exit(1);
+	// root->add_child(ps);
 
 	int framerate = 25;
-	const double FRAME_COUNT = 500;//framerate * 71.7;
-	MasterTempo masterTempo = MasterTempo("../data/1.mid", 174.0, framerate, 1);
+	const double FRAME_COUNT = 1165;//framerate * 71.7;
+	MasterTempo masterTempo = MasterTempo("../data/1.mid", 180.0, framerate, 1);
 	int SSAAFactor = 1;
 	height *= SSAAFactor;
 	width *= SSAAFactor;
 
 	double filterWeight = 0;
-	double filterRelease = 5.0/framerate;
+	double filterRelease = 8.0/framerate;
 
 	double *rbuffer = (double*)malloc(sizeof(double)*3*width*height);
 	int rbufferindex = 0;
 
-
 	const long double renderStartTime = time(0);
 	long double previousFrameFinishTime = renderStartTime;
 
-	for(int frame = 1; frame <= FRAME_COUNT; frame++){
+	for(int frame = 150; frame <= FRAME_COUNT; frame++){
 		masterTempo.updateFrame(frame);
 		rbufferindex=0;
 
 		//
 		// RENDER GEOMETRY
 		//
+		Matrix4x4 world = Matrix4x4();
+		world = world.rotateX(frame);
 		StripRenderParams params = StripRenderParams(root, width, height,
-           eye, view, up, fov, ambient, lights, &masterTempo, rbuffer);
+           eye, view, up, fov, ambient, lights, &masterTempo, rbuffer, world);
 
 		pthread_t threads[NUM_THREADS];
 		pthread_attr_t attr;
@@ -229,7 +243,7 @@ void render(// What to render
 		// RENDER GEOMETRY
 		//
 
-		if(masterTempo.getNoteStatus(0))
+		if(masterTempo.getNoteStatus(3))
 			filterWeight = 1.0;
 		else if(filterWeight > 0)
 			filterWeight -= filterRelease;
@@ -238,6 +252,9 @@ void render(// What to render
 
 		if(filterWeight > 0)
 			applySinCityFilter(rbuffer, height, width, filterWeight);
+
+		if(masterTempo.getNoteStatus(0))
+			applyCocaineFilter(rbuffer, height, width);
 
 		long double delay = previousFrameFinishTime;
 		previousFrameFinishTime = time(0);
@@ -286,12 +303,14 @@ void render(// What to render
 		frameName = frameName + frameNumberStr + ".png";
 
 		img.savePng(frameName);
+
+		root->tick(&masterTempo);
 	}
 	
 	stringstream ss;
 	ss << "ffmpeg -i \%09d.png -framerate ";
 	ss << framerate;
-	ss << " -y -f avi -b 1.5M -s " << width/SSAAFactor << "x" << height/SSAAFactor;
+	ss << " -y -f avi -qscale 1 -s " << width/SSAAFactor << "x" << height/SSAAFactor;
 	ss << " temp.avi";
 	const char* ffmpegCommand = ss.str().c_str();
 	cout << "\n\n";
@@ -306,6 +325,39 @@ void render(// What to render
 	//system("rm *.png");
 	system("clear");
 	cout << "Render complete: " << filename << ".avi\n";
+}
+
+void applyCocaineFilter(double* rbuf, int bufheight, int bufwidth){
+	string cocaineImage = "../data/cocaine.png";
+	Image cocaine;
+	cocaine.loadPng(cocaineImage);
+	int width = cocaine.width();
+	int height = cocaine.height();
+	int numElements = cocaine.elements();
+	double* cocaineData = cocaine.data();
+
+	float u,v;
+	int cx, cy;
+
+	for(int h = 0; h < bufheight; h++){
+		for(int w = 0; w < bufwidth; w++){
+			u = ((float)w) / bufwidth;
+			v = ((float)h) / bufheight;
+			cx = (int)floor(u*width);
+			cy = (int)floor(v*height);
+			double cval = cocaineData[numElements*(width*cy + cx)];
+			int bindex = 3*(h*bufwidth + w);
+			if(cval < 0.5){
+				rbuf[bindex++] = 0;
+				rbuf[bindex++] = 0;
+				rbuf[bindex++] = 0;
+			} else {
+				rbuf[bindex++] += 0.2;
+				rbuf[bindex++] += 0.4;
+				rbuf[bindex++] += 0.3;
+			}
+		}
+	}
 }
 
 void applySinCityFilter(double* rbuf, int height, int width, double filterWeight){
