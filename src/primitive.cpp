@@ -339,9 +339,9 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
 
   //if(false) return ans; // IF THE OBJECT IS NOT TRANSPARENT
 
-  ans->setRefraction(true);
-  Vector3D rf = refraction(1.6, ans->getNormal(), rayP, ans->getPoint());
-  ans->setRefAngle(rf);
+  // ans->setRefraction(true);
+  // Vector3D rf = refraction(1.6, ans->getNormal(), rayP, ans->getPoint());
+  // ans->setRefAngle(rf);
 
   //Intersection* a2 = intersectHeightMap(rayP, rayV, trans, m_pos, m_radius);
 

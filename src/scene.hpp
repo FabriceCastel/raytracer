@@ -6,6 +6,8 @@
 #include "primitive.hpp"
 #include "material.hpp"
 #include "mastertempo.hpp"
+#include "particle.hpp"
+
 
 class SceneNode {
 public:
@@ -38,6 +40,7 @@ public:
   }
 
   virtual Intersection* intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans, MasterTempo* mt);
+  virtual void tick(MasterTempo* mt);
 
   // Callbacks to be implemented.
   // These will be called from Lua.
@@ -102,6 +105,21 @@ public:
 protected:
   Material* m_material;
   Primitive* m_primitive;
+};
+
+class ParticleSystem : public SceneNode {
+public:
+  ParticleSystem(const std::string& name, Vector3D gravity, Point3D spawnZoneCorner, double spawnZoneSize, double spawnDensity);
+  virtual Intersection* intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans, MasterTempo* mt);
+  virtual void tick(MasterTempo* mt);
+
+private:
+  Vector3D gravity;
+  Point3D spawnZoneCorner;
+  double spawnZoneSize;
+  double spawnDensity;
+  int currentFrame;
+  std::list<Particle> particles;
 };
 
 #endif

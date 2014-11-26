@@ -101,6 +101,35 @@ void get_tuple(lua_State* L, int arg, T* data, int n)
   }
 }
 
+// Create a particle emitter
+extern "C"
+int gr_emitter_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+  
+  gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
+  data->node = 0;
+  
+  const char* name = luaL_checkstring(L, 1);
+
+  Point3D pos;
+  get_tuple(L, 2, &pos[0], 3);
+
+  double size = luaL_checknumber(L, 3);
+
+  Vector3D gravity;
+  get_tuple(L, 4, &gravity[0], 3);
+
+  double density = luaL_checknumber(L, 5);
+
+  data->node = new ParticleSystem(name, gravity, pos, size, density);
+
+  luaL_getmetatable(L, "gr.node");
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
 // Create a node
 extern "C"
 int gr_node_cmd(lua_State* L)
@@ -533,13 +562,13 @@ static const luaL_reg grlib_functions[] = {
   {"sphere", gr_sphere_cmd},
   {"joint", gr_joint_cmd},
   {"material", gr_material_cmd},
-  // New for assignment 4
   {"cube", gr_cube_cmd},
   {"nh_sphere", gr_nh_sphere_cmd},
   {"nh_box", gr_nh_box_cmd},
   {"mesh", gr_mesh_cmd},
   {"light", gr_light_cmd},
   {"render", gr_render_cmd},
+  {"emitter", gr_emitter_cmd},
   {0, 0}
 };
 

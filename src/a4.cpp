@@ -6,7 +6,7 @@
 #include <sstream>
 #include <pthread.h>
 
-#define NUM_THREADS 16
+#define NUM_THREADS 8
 
 void printProgBar( int percent ){
 	std::string bar;
@@ -96,6 +96,7 @@ void *renderNextStrip(void *params){
 
 					fc = shade(fc, lights, ambient, col, eye, root, mt);
 					fc.cap(1.0);
+					free(col);
 				}
 
 
@@ -150,7 +151,7 @@ void *renderNextStrip(void *params){
 				rbuffer[rbufferindex++] = fc[2];
 
 			}
-			free(col);
+			
 			free(initHit);
 		}
 		y = renderParams->getNextRow();
@@ -173,6 +174,17 @@ void render(// What to render
 	const std::list<Light*>& lights
 	)
 {
+	//ParticleSystem ps("snow", Vector3D(0, -0.00001, 0), Point3D(0,0,0), 200.0, 1.0);
+	
+	// cout << "TEST\n";
+	// ParticleSystem ptest = ParticleSystem("snow", Vector3D(0, -0.00001, 0), Point3D(0,0,0), 200.0, 1.0);
+	// cout << "TESTSTST\n";
+	// ParticleSystem* ps = (ParticleSystem*)malloc(sizeof(ptest));
+	// *ps = ptest;
+
+	// cout << "TEST\n";
+	// //exit(1);
+	// root->add_child(ps);
 
 	int framerate = 25;
 	const double FRAME_COUNT = 1165;//framerate * 71.7;
@@ -187,11 +199,10 @@ void render(// What to render
 	double *rbuffer = (double*)malloc(sizeof(double)*3*width*height);
 	int rbufferindex = 0;
 
-
 	const long double renderStartTime = time(0);
 	long double previousFrameFinishTime = renderStartTime;
 
-	for(int frame = 1; frame <= FRAME_COUNT; frame++){
+	for(int frame = 150; frame <= FRAME_COUNT; frame++){
 		masterTempo.updateFrame(frame);
 		rbufferindex=0;
 
@@ -292,6 +303,8 @@ void render(// What to render
 		frameName = frameName + frameNumberStr + ".png";
 
 		img.savePng(frameName);
+
+		root->tick(&masterTempo);
 	}
 	
 	stringstream ss;
