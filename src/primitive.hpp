@@ -10,6 +10,10 @@ public:
   Intersection(Point3D iPoint, Vector3D normal, Material* material)
     : p(iPoint), n(normal), mat(material){
       refraction = false;
+      ht = false;
+      texture = Vector3D(0,0,0);
+      u = -1;
+      v = -1;
     };
   virtual ~Intersection();
   Point3D getPoint(){ return p; };
@@ -23,12 +27,21 @@ public:
   void setMaterial(Material* material){ mat = material; };
   void setRefraction(bool ref){refraction = ref;};
   void setRefAngle(Vector3D r){refAngle = r;};
+  void setTexture(Vector3D c){texture = c; ht = true;};
+  void setTextureUV(double uc, double vc){u = uc; v = vc;};
+  bool hasTexture(){return ht;};
+  Vector3D getTexture(){return texture;};
+  double getU(){return u;};
+  double getV(){return v;};
 
 private:
   Point3D p;
   Vector3D n, refAngle;
   Material* mat;
   bool refraction;
+  bool ht;
+  Vector3D texture;
+  double u, v;
 };
 
 

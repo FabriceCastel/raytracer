@@ -7,6 +7,7 @@
 #include "material.hpp"
 #include "mastertempo.hpp"
 #include "particle.hpp"
+#include "texture.hpp"
 
 
 class SceneNode {
@@ -102,8 +103,13 @@ public:
     m_material = material;
   }
 
+  void set_texture(Texture* texture){
+    m_texture = texture;
+  }
+
 protected:
   Material* m_material;
+  Texture* m_texture;
   Primitive* m_primitive;
 };
 

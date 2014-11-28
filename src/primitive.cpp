@@ -63,6 +63,7 @@ Intersection* NonhierBox::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4
   double t = -1;
   double hitTest;
   Vector3D normal;
+  double u,v;
 
   for(int p = 0; p < 6; p++){
     hitTest = intersectPlane(rayP, rayV, points[p], normals[p]);
@@ -85,6 +86,30 @@ Intersection* NonhierBox::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4
        (t < 0 || hitTest < t)){
       t = hitTest;
       normal = normals[p];
+
+      // use the current intersection point 'inter'..
+      u = 0.5;
+      v = 0.5;
+
+      
+      double z = Vector3D(0,0,1).dot(normal);
+      double y = Vector3D(0,1,0).dot(normal);
+
+      if(z > epsilon || z < -1*epsilon){
+        // if on x-y plane:
+        u = (inter[0] - bcorner[0]) / m_size;
+        v = (inter[1] - bcorner[1]) / m_size;
+      } else if(y > epsilon || y < -1*epsilon){
+        // if on x-z plane:
+        u = (inter[0] - bcorner[0]) / m_size;
+        v = (inter[2] - bcorner[2]) / m_size;
+      } else {
+        // if on y-z plane:
+        u = (inter[2] - bcorner[2]) / m_size;
+        v = (inter[1] - bcorner[1]) / m_size;
+      }
+      v = 1 - v;
+
     }
   }
   
@@ -95,6 +120,7 @@ Intersection* NonhierBox::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4
 
   Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
   *ans = Intersection(hit, normal, NULL);
+  ans->setTextureUV(u, v);
   return ans;
 }
 

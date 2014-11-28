@@ -75,6 +75,10 @@ void *renderNextStrip(void *params){
 				*initHit = Intersection(col->getPoint(), col->getNormal(), col->getMaterial());
 				initHit->setRefraction(col->isRefraction());
 				initHit->setRefAngle(col->getRefAngle());
+				if(col->hasTexture()){
+					initHit->setTexture(col->getTexture());
+					initHit->setTextureUV(col->getU(), col->getV());
+				}
 
 				while(col != NULL && col->isRefraction()){
 					Point3D point = col->getPoint();
@@ -202,7 +206,7 @@ void render(// What to render
 	const long double renderStartTime = time(0);
 	long double previousFrameFinishTime = renderStartTime;
 
-	for(int frame = 150; frame <= FRAME_COUNT; frame++){
+	for(int frame = 1; frame <= FRAME_COUNT; frame++){
 		masterTempo.updateFrame(frame);
 		rbufferindex=0;
 
@@ -402,6 +406,10 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersecti
 	Material *mat = col->getMaterial();
 	Colour ks = mat->getKS();
 	Colour kd = mat->getKD();
+	if(col->hasTexture()){
+		Vector3D nkd = col->getTexture();
+		kd = Colour(nkd[0], nkd[1], nkd[2]);
+	}
 	int shininess = (int)mat->getShininess();
 	
 	Point3D point = col->getPoint();

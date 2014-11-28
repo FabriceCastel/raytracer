@@ -3,7 +3,7 @@ Fab's Raytracer
 
 Objectives:
 
-1. Texture mapping
+1. ~~Texture mapping~~
 2. Volumetric lighting
 3. Height mapping [IN PROGRESS]
 4. ~~Post-processing filter~~
@@ -15,6 +15,12 @@ Objectives:
 10. 4th degree implicit surface primitive with genus > 0
 
 A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
+
+# November 28th - 12:40am
+
+Texture mapping works for cubes via a Lua interface now, that's one more item off my list. Getting pretty close to completing it :) I've still got to link it up with the MIDI in order to *really* finish off that objective but given how little work that involves I'll consider this an early victory.
+
+![Alt text](/sampletexture.png?raw=true "Sample texture mapping")
 
 # November 26th - 2:40am
 

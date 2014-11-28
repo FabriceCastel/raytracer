@@ -33,7 +33,7 @@ public:
           root(root), width(width), height(height),
           eye(eye), view(view), up(up), fov(fov),
           ambient(ambient), lights(lights), mt(mt),
-          rbuffer(rbuffer), nextRow(0), world(world) {}
+          rbuffer(rbuffer), world(world), nextRow(0) {}
 
      SceneNode* getRoot(){return root;};
      int getWidth(){return width;};
