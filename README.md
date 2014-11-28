@@ -20,13 +20,13 @@ A ray tracer written for CS488, to be extended as a final project due Dec 1st 20
 
 Texture mapping works for cubes via a Lua interface now, that's one more item off my list. Getting pretty close to completing it :) I've still got to link it up with the MIDI in order to *really* finish off that objective but given how little work that involves I'll consider this an early victory.
 
-![Alt text](/sampletexture.png?raw=true "Sample texture mapping")
+![Alt text](/samples/sampletexture.png?raw=true "Sample texture mapping")
 
 # November 26th - 2:40am
 
 Particles galore, I've got them working, set up as Lua script input and MIDI-ready. They're more fun to watch with the animation but youtube keeps rejecting my .avi so a still will have to do for the time being.
 
-![Alt text](/sampleparticles.png?raw=true "Sample particles")
+![Alt text](samples/sampleparticles.png?raw=true "Sample particles")
 
 # November 25th - 11:00am
 
@@ -59,8 +59,8 @@ I'm taking a third stab at the MIDI file interpretation, this time with the STK 
 
 I've implemented a Sin City-like post-processing filter. The first image below is pre-filter and the second is post-filter. The results look pretty decent but it took a lot of messing around with the parameters, I'm not sure how well this will apply to my geometry further down the line. At any rate it shouldn't be too hard now that I've put these tests in place.
 
-![Alt text](/prefilter.png?raw=true "Sample render")
-![Alt text](/postfilter.png?raw=true "Sample render")
+![Alt text](samples/prefilter.png?raw=true "Sample render")
+![Alt text](samples/postfilter.png?raw=true "Sample render")
 
 # November 14th 2014 - 1:15pm
 
@@ -70,24 +70,24 @@ Valgrind is love! A little while back I tried sticking my render method in a for
 
 I'm putting the height map on hold for a moment to knock off some smaller objectives and take a bit of a breather. I've upgraded the lighting model from Phong to Blinn-Phong. I've set up the sample render (image below) to use the Blinn specular value for the red channel and the Phong specular for the green, so the orange areas are more or less the same with both specular models. The difference is very noticeable around the specular dots on the glass sphere.
 
-![Alt text](/sampleblinn.png?raw=true "Sample render")
+![Alt text](samples/sampleblinn.png?raw=true "Sample render")
 
 # November 8th 2014 - 2:20pm
 
 The height mapping algorithm is painful to implement. I'm able to get the correct outline of the warped sphere now and I can also get the normals right for most of the surface, but my method of adding an epsilon to the theta and phi (in spherical coordinates) isn't working too well at the poles, so I'll have to try a tangent plane method next. I'm getting close though. I've also updated the objectives list to reflect the final project proposal.
 
-![Alt text](/sampleheight1.png?raw=true "Sample render")
+![Alt text](samples/sampleheight1.png?raw=true "Sample render")
 
 
 # November 5th 2014 - 1:30pm
 
 I've been working on the heightmap feature for spheres for several hours now. The algorithm is ridiculously hard to implement given how confused I am about the math background involved here. In other news, I've improved the glass fakery, so there's that for progress.
 
-![Alt text](/samplebetterglass.png?raw=true "Sample render")
+![Alt text](samples/samplebetterglass.png?raw=true "Sample render")
 
 
 # November 2nd 2014 - 6:00pm
 
 I've added refraction to the sphere objects; the raytracer can now emulate glass-like surfaces.
 
-![Alt text](/samplerefraction.png?raw=true "Sample render")
+![Alt text](samples/samplerefraction.png?raw=true "Sample render")
