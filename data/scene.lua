@@ -22,15 +22,15 @@ wall = gr.nh_box('wall', {-3500, -3500, -10000}, 7000)
 scene_root:add_child(wall)
 wall:set_material(violet)
 
-snow = gr.emitter('snow', {-500, -1100, 0}, 1000, {0, 3, 0}, 10, 0.3)
+snow = gr.emitter('snow', {-500, -1100, 0}, 1000, {0, 3, 0}, 0.5, 0.3)
 scene_root:add_child(snow)
 
 box = gr.nh_box('box', {80, -50, -900}, 400)
 scene_root:add_child(box)
 box:set_material(orange)
 
-chicken = gr.texture('../prefilter.png')
-box:set_texture(chicken)
+chicken = gr.texture('../samples/prefilter.png')
+box:set_texture(chicken, 9)
 
 box4 = gr.nh_box('box4', {-400, -40, -40}, 80)
 scene_root:add_child(box4)
@@ -40,9 +40,9 @@ box2 = gr.nh_box('box2', {-400, -0, -1200}, 300)
 scene_root:add_child(box2)
 box2:set_material(green)
 
--- s1 = gr.nh_sphere('s1', {0, 0, -100}, 200)
--- scene_root:add_child(s1)
--- s1:set_material(glass)
+s1 = gr.nh_sphere('s1', {0, 0, -100}, 200)
+scene_root:add_child(s1)
+s1:set_material(glass)
 
 
 white_light = gr.light({-200.0, 800.0, 600.0}, {0.9, 0.9, 0.9}, {1, 0, 0})

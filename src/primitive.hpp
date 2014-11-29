@@ -33,6 +33,7 @@ public:
   Vector3D getTexture(){return texture;};
   double getU(){return u;};
   double getV(){return v;};
+  void clearTexture(){ht = false;};
 
 private:
   Point3D p;
@@ -90,6 +91,20 @@ public:
 private:
   Point3D m_pos;
   double m_size;
+};
+
+class NonhierTangleCube : public Primitive {
+public:
+  NonhierTangleCube(const Point3D& pos, double radius) :
+    m_pos(pos), m_radius(radius){}
+
+  virtual ~NonhierTangleCube();
+
+  virtual Intersection* getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans);
+
+private:
+  Point3D m_pos;
+  double m_radius;
 };
 
 #endif

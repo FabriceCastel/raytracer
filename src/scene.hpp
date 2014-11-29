@@ -105,11 +105,21 @@ public:
 
   void set_texture(Texture* texture){
     m_texture = texture;
+    m_trigger = -1;
   }
+
+  void set_texture(Texture* texture, int trigger){
+    m_texture = texture;
+    m_trigger = trigger;
+  }
+
+  bool hasMidiTrigger(){return (m_trigger != -1);};
+  int getMidiTrigger(){return m_trigger;};
 
 protected:
   Material* m_material;
   Texture* m_texture;
+  int m_trigger;
   Primitive* m_primitive;
 };
 

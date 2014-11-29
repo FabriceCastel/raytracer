@@ -35,6 +35,8 @@ Intersection* SceneNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans,
         if(tcol->hasTexture()){
           col->setTexture(tcol->getTexture());
           col->setTextureUV(tcol->getU(), tcol->getV());
+        } else {
+          col->clearTexture();
         }
       }
 
@@ -121,10 +123,22 @@ Intersection* GeometryNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 tra
       m_material->setKD(Colour(0.5, 0.7, 0.5));
     }
   }
+
   Intersection* inter = m_primitive->getIntersection(rayP, rayV, trans);
+
   if(inter == NULL) return NULL;
+  
+
+  if(std::strcmp(m_name.c_str(), "s1") == 0){
+    inter->setRefraction(true);
+    Vector3D rf = refraction(1.6, inter->getNormal(), rayP, inter->getPoint());
+    inter->setRefAngle(rf);
+  }
+
+
+  
   inter->setMaterial(m_material);
-  if(m_texture != NULL){
+  if(m_texture != NULL && (!hasMidiTrigger() || mt->getNoteStatus(getMidiTrigger()))){
     double u = inter->getU();
     double v = inter->getV();
     inter->setTexture(m_texture->getUV(u, v));
@@ -139,7 +153,11 @@ ParticleSystem::ParticleSystem(const std::string& name, Vector3D gravity, Point3
 }
 
 void ParticleSystem::tick(MasterTempo* mt){
-  int newParticleCount = (int)((std::rand()%2)*(std::rand()%2)*(std::rand()%2));//((int)(1.0/spawnDensity)));
+  int newParticleCount = 0;
+  while(std::rand() < spawnDensity * RAND_MAX){
+    newParticleCount++;
+    //cout << std::rand() << " _ " << spawnDensity << " * " << RAND_MAX << "\n";
+  }
   for(int i = 0; i < newParticleCount; i++){
     double xrand = (double)std::rand() * spawnZoneSize;
     double yrand = 0.01 * (double)std::rand() * spawnZoneSize;
@@ -153,9 +171,9 @@ void ParticleSystem::tick(MasterTempo* mt){
     int lifespan = 300;
     int midiNote = 6 + std::rand()%2;
     double minSize = 0;
-    double maxSize = 10;
-    double attack = 10;
-    double release = 1;
+    double maxSize = 2;
+    double attack = 2;
+    double release = 0.4;
     Particle particle(startPosition, direction, lifespan, midiNote, minSize, maxSize, attack, release);
     particles.push_front(particle);
   }
@@ -218,7 +236,7 @@ Intersection* ParticleSystem::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 t
     // r /= RAND_MAX;
     // g /= RAND_MAX;
     // b /= RAND_MAX;
-    PhongMaterial* mat = new PhongMaterial(Colour(1,0.1,0.3), Colour(1,1,1), 200.0);
+    PhongMaterial* mat = new PhongMaterial(Colour(1,1,1), Colour(1,1,1), 200.0);
     col->setMaterial(mat);
   }
   return col;

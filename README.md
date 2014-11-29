@@ -4,7 +4,7 @@ Fab's Raytracer
 Objectives:
 
 1. ~~Texture mapping~~
-2. Volumetric lighting
+2. ~~Volumetric lighting~~
 3. Height mapping [IN PROGRESS]
 4. ~~Post-processing filter~~
 5. ~~Refraction~~
@@ -15,6 +15,12 @@ Objectives:
 10. 4th degree implicit surface primitive with genus > 0
 
 A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
+
+# November 29th - 4:15pm
+
+Soft shadows are done but they're taking way too long to render, I don't think I'll be able to use them as is in the final video. If I cast less than around 25 rays, the shadows look noisy (and that's with SSAAx2 enabled). Here I'm casting 50 rays per point with SSAAx2. It took 33 seconds to render the frame.. welp, at least there goes volumetric lighting (sort of).
+
+![Alt text](/samples/samplesoftshadow.png?raw=true "Sample soft shadow");
 
 # November 28th - 12:40am
 

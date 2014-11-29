@@ -27,6 +27,8 @@ NonhierBox::~NonhierBox()
 {
 }
 
+NonhierTangleCube::~NonhierTangleCube(){}
+
 Intersection* Primitive::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans){
   return NULL;
 }
@@ -308,6 +310,66 @@ Intersection* intersectHeightMap(Point3D rayP, Vector3D rayV, Matrix4x4 trans, P
 }
 
 Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans){
+/*
+  rayV.normalize();
+
+  double roots[4];
+  double k = std::pow(rayV[0], 4) +
+             std::pow(rayV[1], 4) +
+             std::pow(rayV[2], 4);
+  k = k / 1.0001;
+  double a = 0;
+  double b = 0;
+  double c = 0;
+  double d = 0;
+  for(int i = 0; i < 3; i++){
+    a += 4 * rayV[i]*rayV[i]*rayV[i] * rayP[i];
+    b += 6 * rayV[i]*rayV[i] * rayP[i]*rayP[i];
+    c += 4 * rayV[i] * rayP[i]*rayP[i]*rayP[i] - 10*rayP[i]*rayV[i];
+    d += rayP[i]*rayP[i]*rayP[i]*rayP[i] - 5*rayP[i]*rayP[i];
+  }
+  d += 11.8;
+
+  a /= k; b /= k; c /= k; d /= k;
+
+  int rootCount = quarticRoots(a, b, c, d, roots);
+  if(rootCount == 0) return NULL;
+
+  double t = roots[0];
+  for(int i = 1; i < rootCount; i++){
+    if(roots[i] > 0 && roots[i] < t){
+      t = roots[i];
+    }
+  }
+
+  //cout << "Root count: " << rootCount << " - " << roots[0] << "\n";
+
+  if(t <= 0) return NULL;
+
+  //cout << "TESTSE";
+
+  Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
+  *ans = Intersection(rayP + t*rayV, Vector3D(-0.5, 0.0, 0.5), NULL);
+  return ans;
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   rayV.normalize(); // just in case
   Vector3D v = rayP - m_pos;
 
@@ -376,5 +438,40 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
 
   //std::cout << "\nOrigin: " << rayP << "\nNormal: " << ans->getNormal() << "\nIntersection point: " << ans->getPoint() << "\nRefraction Angle: " << rf;
 
+  return ans;
+}
+
+
+Intersection* NonhierTangleCube::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans){
+  double roots[4];
+  double k = rayV[0] + rayV[1] + rayV[2];
+  double a = 0;
+  double b = 0;
+  double c = 0;
+  double d = 0;
+  for(int i = 0; i < 3; i++){
+    a += 3 * std::pow(rayV[i], 3) * rayP[i];
+    b += 6 * std::pow(rayV[i], 2) * std::pow(rayP[i], 2);
+    c += 4 * rayV[i] * std::pow(rayP[i], 3) - 10*rayP[i]*rayV[i];
+    d += std::pow(rayP[i], 4) - 5*std::pow(rayP[i], 2);
+  }
+  d += 11.8;
+
+  a /= k; b /= k; c /= k; d /= k;
+
+  int rootCount = quarticRoots(a, b, c, d, roots);
+  if(rootCount == 0) return NULL;
+
+  double t = 0;
+  for(int i = 0; i < rootCount; i++){
+    if(roots[i] > 0 && roots[i] < t){
+      t = roots[i];
+    }
+  }
+
+  if(t <= 0) return NULL;
+
+  Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
+  *ans = Intersection(rayP + t*rayV, Vector3D(-0.5, 0.0, 0.5), NULL);
   return ans;
 }

@@ -504,7 +504,10 @@ int gr_node_set_texture_cmd(lua_State* L)
 
   Texture* texture = matdata->texture;
 
-  self->set_texture(texture);
+  double trigger = luaL_checknumber(L, 3);
+
+  if(trigger >= 0 && trigger <= 128) self->set_texture(texture, (int)trigger);
+  else self->set_texture(texture);
 
   return 0;
 }

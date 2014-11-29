@@ -191,9 +191,9 @@ void render(// What to render
 	// root->add_child(ps);
 
 	int framerate = 25;
-	const double FRAME_COUNT = 1165;//framerate * 71.7;
+	const double FRAME_COUNT = 1;//1165;//framerate * 71.7;
 	MasterTempo masterTempo = MasterTempo("../data/1.mid", 180.0, framerate, 1);
-	int SSAAFactor = 1;
+	int SSAAFactor = 2;
 	height *= SSAAFactor;
 	width *= SSAAFactor;
 
@@ -310,25 +310,29 @@ void render(// What to render
 
 		root->tick(&masterTempo);
 	}
-	
-	stringstream ss;
-	ss << "ffmpeg -i \%09d.png -framerate ";
-	ss << framerate;
-	ss << " -y -f avi -qscale 1 -s " << width/SSAAFactor << "x" << height/SSAAFactor;
-	ss << " temp.avi";
-	const char* ffmpegCommand = ss.str().c_str();
-	cout << "\n\n";
-	system(ffmpegCommand);
 
-	stringstream sa;
-	sa << "ffmpeg -i temp.avi -i audio.wav -y -f avi -b 1.5M -s " << width/SSAAFactor << "x" << height/SSAAFactor << " " << filename << ".avi";
-	const char* ffmpegAudio = sa.str().c_str();
+	if(FRAME_COUNT > 1){
 	
-	cout << "\n\n";
-	system(ffmpegAudio);
-	//system("rm *.png");
-	system("clear");
-	cout << "Render complete: " << filename << ".avi\n";
+		stringstream ss;
+		ss << "ffmpeg -i \%09d.png -framerate ";
+		ss << framerate;
+		ss << " -y -f avi -qscale 1 -s " << width/SSAAFactor << "x" << height/SSAAFactor;
+		ss << " temp.avi";
+		const char* ffmpegCommand = ss.str().c_str();
+		cout << "\n\n";
+		system(ffmpegCommand);
+
+		stringstream sa;
+		sa << "ffmpeg -i temp.avi -i audio.wav -y -f avi -b 1.5M -s " << width/SSAAFactor << "x" << height/SSAAFactor << " " << filename << ".avi";
+		const char* ffmpegAudio = sa.str().c_str();
+		
+		cout << "\n\n";
+		system(ffmpegAudio);
+		//system("rm *.png");
+		system("clear");
+		cout << "Render complete: " << filename << ".avi\n";
+
+	}
 }
 
 void applyCocaineFilter(double* rbuf, int bufheight, int bufwidth){
@@ -429,8 +433,35 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersecti
 			point[2] + fp2*normal[2]);
 		Vector3D pointToLight = lpos - point;
 		pointToLight.normalize();
-		Intersection* shadow = root->intersect(point2, pointToLight, Matrix4x4(), mt);
-		if(shadow == NULL){
+		//Intersection* shadow = root->intersect(point2, pointToLight, Matrix4x4(), mt);
+
+		Intersection* shadow;
+		int resolution = 50;
+		double lightSize = 40.0;
+		double spread = 0.7;
+		double shadowWeight = 0;
+		double xi, yi, zi;
+		
+
+		for(int x = 0; x < resolution; x++){
+			double xShift = (std::rand()  * spread/RAND_MAX - (spread/2)/RAND_MAX) * lightSize;
+			double yShift = (std::rand()  * spread/RAND_MAX - (spread/2)/RAND_MAX) * lightSize;
+			double zShift = (std::rand()  * spread/RAND_MAX - (spread/2)/RAND_MAX) * lightSize;
+			//for(int y = 0; y < resolution; y++){
+				//for(int z = 0; z < resolution; z++){
+					//xi = lightSize + xShift;//((double)x)/resolution;// + xShift;
+					//yi = lightSize + yShift;
+					//zi = lightSize * ((double)z)/resolution;// + zShift;
+					shadow = root->intersect(point2, Point3D(lpos[0]+xShift, lpos[1]+yShift, lpos[2]+zShift) - point2, Matrix4x4(), mt);
+					if(shadow != NULL){
+						shadowWeight += 1.0 / (resolution);//*resolution);
+						free(shadow);
+					}
+				//}
+			//}
+		}
+
+		if(shadowWeight < 1){
 			Colour lightColour = (*I)->colour;
 			Vector3D lcol = Vector3D(lightColour.R(), lightColour.G(), lightColour.B());
 	    	Vector3D iv = lpos - point; // incident vector
@@ -478,11 +509,8 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersecti
 	    	blinnSpec = blinnTerm * specColour;
 
 
-	    	fc = fc + diffuse + (shininess != 0 ? blinnSpec : 0*blinnSpec);
+	    	fc = fc + (1.0 - shadowWeight)*(diffuse + (shininess != 0 ? blinnSpec : 0*blinnSpec));
 	    	//fc = Vector3D(blinnSpec[0], spec[0], 0);
-	    } else {
-	    	// the light doesn't contribute to the surface
-	    	free(shadow);
 	    }
 	}
 	return fc;
