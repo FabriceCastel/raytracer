@@ -6,7 +6,7 @@
 #include <sstream>
 #include <pthread.h>
 
-#define NUM_THREADS 8
+#define NUM_THREADS 1
 
 void printProgBar( int percent ){
 	std::string bar;
@@ -193,7 +193,7 @@ void render(// What to render
 	int framerate = 25;
 	const double FRAME_COUNT = 1;//1165;//framerate * 71.7;
 	MasterTempo masterTempo = MasterTempo("../data/1.mid", 180.0, framerate, 1);
-	int SSAAFactor = 2;
+	int SSAAFactor = 1;
 	height *= SSAAFactor;
 	width *= SSAAFactor;
 
@@ -436,8 +436,8 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersecti
 		//Intersection* shadow = root->intersect(point2, pointToLight, Matrix4x4(), mt);
 
 		Intersection* shadow;
-		int resolution = 50;
-		double lightSize = 40.0;
+		int resolution = 1;
+		double lightSize = 0;//40.0;
 		double spread = 0.7;
 		double shadowWeight = 0;
 		double xi, yi, zi;

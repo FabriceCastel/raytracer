@@ -310,30 +310,38 @@ Intersection* intersectHeightMap(Point3D rayP, Vector3D rayV, Matrix4x4 trans, P
 }
 
 Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans){
-/*
+
   rayV.normalize();
 
   double roots[4];
   double k = std::pow(rayV[0], 4) +
              std::pow(rayV[1], 4) +
              std::pow(rayV[2], 4);
-  k = k / 1.0001;
+  //k = k / 1.001;
+  //k *= 0.999991;
+  //cout << k << "\n";
   double a = 0;
   double b = 0;
   double c = 0;
   double d = 0;
   for(int i = 0; i < 3; i++){
-    a += 4 * rayV[i]*rayV[i]*rayV[i] * rayP[i];
-    b += 6 * rayV[i]*rayV[i] * rayP[i]*rayP[i];
-    c += 4 * rayV[i] * rayP[i]*rayP[i]*rayP[i] - 10*rayP[i]*rayV[i];
-    d += rayP[i]*rayP[i]*rayP[i]*rayP[i] - 5*rayP[i]*rayP[i];
+    a += 4 * pow(rayV[i], 3) * rayP[i];
+    b += 6 * pow(rayV[i], 2) * pow(rayP[i], 2) - 5*pow(rayV[i], 2);
+    c += 4 * rayV[i] * pow(rayP[i], 3) - 10*rayP[i]*rayV[i];
+    d += pow(rayP[i], 4) - 5*pow(rayP[i], 2);
   }
   d += 11.8;
 
-  a /= k; b /= k; c /= k; d /= k;
+  //cout << "a = " << a << "\nb = " << b << "\nc = " << c << "\nd = " << d << "\nk = " << k << "\n--------------------------\n";
+  //exit(1);
 
+  a /= k; b /= k; c /= k; d /= k;
+  //a *= k; b *= k; c *= k; d *= k;
   int rootCount = quarticRoots(a, b, c, d, roots);
   if(rootCount == 0) return NULL;
+
+  //cout << "roots found!\n";
+  //exit(1);
 
   double t = roots[0];
   for(int i = 1; i < rootCount; i++){
@@ -349,15 +357,15 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
   //cout << "TESTSE";
 
   Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
-  *ans = Intersection(rayP + t*rayV, Vector3D(-0.5, 0.0, 0.5), NULL);
+  *ans = Intersection(rayP + t*rayV, Vector3D(0,0,0), NULL);
   return ans;
-*/
 
 
 
 
 
 
+/*
 
 
 
@@ -438,7 +446,7 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
 
   //std::cout << "\nOrigin: " << rayP << "\nNormal: " << ans->getNormal() << "\nIntersection point: " << ans->getPoint() << "\nRefraction Angle: " << rf;
 
-  return ans;
+  return ans;*/
 }
 
 

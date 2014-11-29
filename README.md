@@ -16,6 +16,12 @@ Objectives:
 
 A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
 
+# November 29th - 6:20pm
+
+A wild fourth degree implicit surface has appeared. Working on normal finding for it now, please don't let me down like the height maps did dear blob object.
+
+![Alt text](/samples/sampleimplicit.png?raw=true "Sample implicit surface")
+
 # November 29th - 4:15pm
 
 Soft shadows are done but they're taking way too long to render, I don't think I'll be able to use them as is in the final video. If I cast less than around 25 rays, the shadows look noisy (and that's with SSAAx2 enabled). Here I'm casting 50 rays per point with SSAAx2. It took 33 seconds to render the frame.. welp, at least there goes volumetric lighting (sort of). The 4th degree implicit surface is very non-cooperative at the moment and results in a cloud of points.
