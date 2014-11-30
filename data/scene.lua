@@ -42,7 +42,7 @@ scene_root = gr.node('root')
 
 s = gr.nh_sphere('s', {0, 0, -100}, 200)
 scene_root:add_child(s)
-s:set_material(glass)
+s:set_material(violet)
 
 
 white_light = gr.light({-200.0, 800.0, 600.0}, {0.9, 0.9, 0.9}, {1, 0, 0})
@@ -53,5 +53,5 @@ orange_light = gr.light({400.0, 100.0, 0.0}, {0.7, 0.0, 0.7}, {1, 0, 0})
 -- 	  {0.3, 0.3, 0.3}, {white_light})
 
 gr.render(scene_root, 'sample', 700, 500,
-	  {0, 0, 10}, {0, 0, -1}, {0, 1, 0}, 50,
+	  {0, 0, 20}, {0, 0, -1}, {0, 1, 0}, 25,
 	  {0.3, 0.3, 0.3}, {white_light})

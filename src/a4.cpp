@@ -461,6 +461,8 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersecti
 			//}
 		}
 
+		shadowWeight = 0;
+
 		if(shadowWeight < 1){
 			Colour lightColour = (*I)->colour;
 			Vector3D lcol = Vector3D(lightColour.R(), lightColour.G(), lightColour.B());
@@ -513,5 +515,8 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersecti
 	    	//fc = Vector3D(blinnSpec[0], spec[0], 0);
 	    }
 	}
+	// double z = col->getPoint()[2];
+	// double grey = z/4.0 + 0.4;//(z + 5) / 10;
+	// fc = Vector3D(grey, grey, grey);
 	return fc;
 }

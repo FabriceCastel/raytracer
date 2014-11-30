@@ -356,8 +356,28 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
 
   //cout << "TESTSE";
 
+  Point3D sPoint = rayP + t*rayV;
+  Vector3D sNormal = Vector3D(0,0,0);
+
+  double derivatives[3] = {0,0,0};
+  for(int i = 0; i < 3; i++){
+    int aa = (i + 1)%3;
+    int ab = (i + 2)%3;
+    
+    derivatives[i] = 4*pow(sPoint[i], 3) - 10*sPoint[i];
+    // derivatives[i] += pow(sPoint[aa], 4) - 5*pow(sPoint[aa], 2);
+    // derivatives[i] += pow(sPoint[ab], 4) - 5*pow(sPoint[ab], 2);
+    //derivatives[i] += 11.8;
+    sNormal[i] = derivatives[i];//-1.0 / derivatives[i];
+  }
+
+  //sNormal.normalize();
+  if(sNormal.dot(rayV) > 0) sNormal = -1 * sNormal;
+  sNormal.normalize();
+  cout << sPoint << " - " << sNormal << "\n";
+
   Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
-  *ans = Intersection(rayP + t*rayV, Vector3D(0,0,0), NULL);
+  *ans = Intersection(sPoint, sNormal, NULL);
   return ans;
 
 

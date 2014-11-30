@@ -5,16 +5,22 @@ Objectives:
 
 1. ~~Texture mapping~~
 2. ~~Volumetric lighting~~
-3. Height mapping [IN PROGRESS]
+3. Height mapping [BACKBURNER]
 4. ~~Post-processing filter~~
 5. ~~Refraction~~
 6. ~~Blinn-Phong lighting (to replace current Phong model)~~
 7. ~~Generate animation frames based off MIDI input~~
 8. ~~Particle system~~
 9. ~~Optimize raytracer with multithreading~~
-10. 4th degree implicit surface primitive with genus > 0
+10. 4th degree implicit surface primitive with genus > 0 [IN PROGRESS]
 
 A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
+
+# November 29th - 9:30pm
+
+The fourth degree implicit surface normal took a while to figure out since I wasn't aquainted with the concept of gradient fields, but now I've got it up and running and it looks awesome! That's nine out of my ten objectives done, I'm really happy with the way this is panning out. Now, to figure out how to scale this beast...
+
+![Alt text](/samples/sampleimplicit3.png?raw=true "Sample implicit surface")
 
 # November 29th - 6:20pm
 
