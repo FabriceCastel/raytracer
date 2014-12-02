@@ -199,7 +199,7 @@ void render(// What to render
 	const long double renderStartTime = time(0);
 	long double previousFrameFinishTime = renderStartTime;
 
-	for(int frame = 400; frame <= FRAME_COUNT; frame++){
+	for(int frame = 410; frame <= FRAME_COUNT; frame++){
 		masterTempo.updateFrame(frame);
 		rbufferindex=0;
 
@@ -518,6 +518,7 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersecti
 	    	blinnTerm = std::pow(blinnTerm, shininess);
 	    	//std::cout << blinnTerm << "\n";
 	    	blinnSpec = blinnTerm * specColour;
+	    	blinnSpec = spec; // FORCE PHONG
 
 
 	    	fc = fc + (1.0 - shadowWeight)*(diffuse + (shininess != 0 ? blinnSpec : 0*blinnSpec));
