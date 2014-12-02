@@ -6,7 +6,7 @@ Objectives:
 1. ~~Texture mapping~~ ![Alt text](/samples/sampletexture.png?raw=true "Sample texture mapping")
 2. ~~Volumetric lighting~~ ![Alt text](/samples/samplesoftshadow.png?raw=true "Sample soft shadow")
 3. Height mapping on a sphere [BACKBURNER] ![Alt text](samples/sampleheight1.png?raw=true "Sample render")
-4. ~~Post-processing filter~~ ![Alt text](samples/prefilter.png?raw=true "Sample render") ![Alt text](samples/postfilter.png?raw=true "Sample render")
+4. ~~Post-processing filter (Sin City style, higher contrast of only red/black & white)~~ ![Alt text](samples/prefilter.png?raw=true "Sample render") ![Alt text](samples/postfilter.png?raw=true "Sample render")
 5. ~~Refraction~~ ![Alt text](samples/samplebetterglass.png?raw=true "Sample render")
 6. ~~Blinn-Phong lighting (to replace current Phong model)~~ ![Alt text](samples/sampleblinn.png?raw=true "Sample render")
 7. ~~Generate animation frames based off MIDI input~~ (see video)
