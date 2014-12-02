@@ -1,0 +1,152 @@
+
+  frame 2 of 3 in 136s - total: 0:7:4
+[==================================================] 100%       frame 3 of 3 in 128s - total: 0:9:12==47760== 
+==47760== HEAP SUMMARY:
+==47760==     in use at exit: 127,013,316 bytes in 39,522 blocks
+==47760==   total heap usage: 369,670 allocs, 330,148 frees, 177,436,360 bytes allocated
+==47760== 
+==47760== 72 bytes in 1 blocks are definitely lost in loss record 51 of 102
+==47760==    at 0x6DFB: malloc (in /usr/local/Cellar/valgrind/3.9.0/lib/valgrind/vgpreload_memcheck-amd64-darwin.so)
+==47760==    by 0x9728D: operator new(unsigned long) (in /usr/lib/libc++.1.dylib)
+==47760==    by 0x100035555: gr_light_cmd (in ./rt)
+==47760==    by 0x11732: luaD_precall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x1A676: luaV_execute (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11A99: luaD_call (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11160: luaD_rawrunprotected (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11CFE: luaD_pcall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0xE172: lua_pcall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x10003691C: run_lua(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&) (in ./rt)
+==47760==    by 0x100022F49: main (in ./rt)
+==47760== 
+
+==47760== 144 (72 direct, 72 indirect) bytes in 3 blocks are definitely lost in loss record 55 of 102
+==47760==    at 0x6DFB: malloc (in /usr/local/Cellar/valgrind/3.9.0/lib/valgrind/vgpreload_memcheck-amd64-darwin.so)
+==47760==    by 0x9728D: operator new(unsigned long) (in /usr/lib/libc++.1.dylib)
+==47760==    by 0x10001E304: std::__1::list<Light*, std::__1::allocator<Light*> >::push_back(Light* const&) (in ./rt)
+==47760==    by 0x10001E1D2: std::__1::list<Light*, std::__1::allocator<Light*> >::list(std::__1::list<Light*, std::__1::allocator<Light*> > const&) (in ./rt)
+==47760==    by 0x10001C8BC: std::__1::list<Light*, std::__1::allocator<Light*> >::list(std::__1::list<Light*, std::__1::allocator<Light*> > const&) (in ./rt)
+==47760==    by 0x10001C2B2: StripRenderParams::getLights() (in ./rt)
+==47760==    by 0x10001761A: renderNextStrip(void*) (in ./rt)
+==47760==    by 0x457898: _pthread_body (in /usr/lib/system/libsystem_pthread.dylib)
+==47760==    by 0x457729: _pthread_start (in /usr/lib/system/libsystem_pthread.dylib)
+==47760==    by 0x45BFC8: thread_start (in /usr/lib/system/libsystem_pthread.dylib)
+==47760== 
+
+==47760== 384 bytes in 6 blocks are definitely lost in loss record 68 of 102
+==47760==    at 0x6DFB: malloc (in /usr/local/Cellar/valgrind/3.9.0/lib/valgrind/vgpreload_memcheck-amd64-darwin.so)
+==47760==    by 0x9728D: operator new(unsigned long) (in /usr/lib/libc++.1.dylib)
+==47760==    by 0x100035CB1: gr_material_cmd (in ./rt)
+==47760==    by 0x11732: luaD_precall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x1A676: luaV_execute (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11A99: luaD_call (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11160: luaD_rawrunprotected (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11CFE: luaD_pcall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0xE172: lua_pcall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x10003691C: run_lua(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&) (in ./rt)
+==47760==    by 0x100022F49: main (in ./rt)
+==47760== 
+
+==47760== 640 (112 direct, 528 indirect) bytes in 1 blocks are definitely lost in loss record 78 of 102
+==47760==    at 0x6DFB: malloc (in /usr/local/Cellar/valgrind/3.9.0/lib/valgrind/vgpreload_memcheck-amd64-darwin.so)
+==47760==    by 0x9728D: operator new(unsigned long) (in /usr/lib/libc++.1.dylib)
+==47760==    by 0x1000324B4: std::__1::list<Particle, std::__1::allocator<Particle> >::push_front(Particle const&) (in ./rt)
+==47760==    by 0x100031909: ParticleSystem::tick(MasterTempo*) (in ./rt)
+==47760==    by 0x100030B2B: SceneNode::tick(MasterTempo*) (in ./rt)
+==47760==    by 0x10001B409: render(SceneNode*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, int, int, Point3D const&, Vector3D const&, Vector3D const&, double, Colour const&, std::__1::list<Light*, std::__1::allocator<Light*> > const&) (in ./rt)
+==47760==    by 0x100035B71: gr_render_cmd (in ./rt)
+==47760==    by 0x11732: luaD_precall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x1A676: luaV_execute (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11A99: luaD_call (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11160: luaD_rawrunprotected (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11CFE: luaD_pcall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760== 
+
+==47760== 24,576 bytes in 6 blocks are definitely lost in loss record 96 of 102
+==47760==    at 0x6DFB: malloc (in /usr/local/Cellar/valgrind/3.9.0/lib/valgrind/vgpreload_memcheck-amd64-darwin.so)
+==47760==    by 0x27F855: __smakebuf (in /usr/lib/system/libsystem_c.dylib)
+==47760==    by 0x282E27: __srefill0 (in /usr/lib/system/libsystem_c.dylib)
+==47760==    by 0x282F24: __srefill (in /usr/lib/system/libsystem_c.dylib)
+==47760==    by 0x282FF4: __srget (in /usr/lib/system/libsystem_c.dylib)
+==47760==    by 0x27C68D: fgetc (in /usr/lib/system/libsystem_c.dylib)
+==47760==    by 0x100021FD2: Image::loadPng(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&) (in ./rt)
+==47760==    by 0x100039572: Texture::Texture(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >) (in ./rt)
+==47760==    by 0x100039514: Texture::Texture(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >) (in ./rt)
+==47760==    by 0x100035E96: gr_texture_cmd (in ./rt)
+==47760==    by 0x11732: luaD_precall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x1A676: luaV_execute (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760== 
+
+==47760== 525,000 bytes in 1 blocks are definitely lost in loss record 97 of 102
+==47760==    at 0x6DFB: malloc (in /usr/local/Cellar/valgrind/3.9.0/lib/valgrind/vgpreload_memcheck-amd64-darwin.so)
+==47760==    by 0x100019DCE: render(SceneNode*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, int, int, Point3D const&, Vector3D const&, Vector3D const&, double, Colour const&, std::__1::list<Light*, std::__1::allocator<Light*> > const&) (in ./rt)
+==47760==    by 0x100035B71: gr_render_cmd (in ./rt)
+==47760==    by 0x11732: luaD_precall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x1A676: luaV_execute (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11A99: luaD_call (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11160: luaD_rawrunprotected (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11CFE: luaD_pcall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0xE172: lua_pcall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x10003691C: run_lua(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&) (in ./rt)
+==47760==    by 0x100022F49: main (in ./rt)
+==47760== 
+
+==47760== 1,603,576 bytes in 11,791 blocks are definitely lost in loss record 98 of 102
+==47760==    at 0x6DFB: malloc (in /usr/local/Cellar/valgrind/3.9.0/lib/valgrind/vgpreload_memcheck-amd64-darwin.so)
+==47760==    by 0x10002DD4D: NonhierSphere::getIntersection(Point3D, Vector3D, Matrix4x4) (in ./rt)
+==47760==    by 0x100031131: GeometryNode::intersect(Point3D, Vector3D, Matrix4x4, MasterTempo*) (in ./rt)
+==47760==    by 0x100030600: SceneNode::intersect(Point3D, Vector3D, Matrix4x4, MasterTempo*) (in ./rt)
+==47760==    by 0x10001914F: shade(Vector3D, std::__1::list<Light*, std::__1::allocator<Light*> >, Colour, Intersection*, Point3D, SceneNode*, MasterTempo*) (in ./rt)
+==47760==    by 0x100018372: renderNextStrip(void*) (in ./rt)
+==47760==    by 0x457898: _pthread_body (in /usr/lib/system/libsystem_pthread.dylib)
+==47760==    by 0x457729: _pthread_start (in /usr/lib/system/libsystem_pthread.dylib)
+==47760==    by 0x45BFC8: thread_start (in /usr/lib/system/libsystem_pthread.dylib)
+==47760== 
+
+==47760== 1,603,576 bytes in 11,791 blocks are definitely lost in loss record 99 of 102
+==47760==    at 0x6DFB: malloc (in /usr/local/Cellar/valgrind/3.9.0/lib/valgrind/vgpreload_memcheck-amd64-darwin.so)
+==47760==    by 0x10002DD4D: NonhierSphere::getIntersection(Point3D, Vector3D, Matrix4x4) (in ./rt)
+==47760==    by 0x100031131: GeometryNode::intersect(Point3D, Vector3D, Matrix4x4, MasterTempo*) (in ./rt)
+==47760==    by 0x100030600: SceneNode::intersect(Point3D, Vector3D, Matrix4x4, MasterTempo*) (in ./rt)
+==47760==    by 0x10001914F: shade(Vector3D, std::__1::list<Light*, std::__1::allocator<Light*> >, Colour, Intersection*, Point3D, SceneNode*, MasterTempo*) (in ./rt)
+==47760==    by 0x100018571: renderNextStrip(void*) (in ./rt)
+==47760==    by 0x457898: _pthread_body (in /usr/lib/system/libsystem_pthread.dylib)
+==47760==    by 0x457729: _pthread_start (in /usr/lib/system/libsystem_pthread.dylib)
+==47760==    by 0x45BFC8: thread_start (in /usr/lib/system/libsystem_pthread.dylib)
+==47760== 
+
+==47760== 2,103,376 bytes in 15,466 blocks are definitely lost in loss record 100 of 102
+==47760==    at 0x6DFB: malloc (in /usr/local/Cellar/valgrind/3.9.0/lib/valgrind/vgpreload_memcheck-amd64-darwin.so)
+==47760==    by 0x10002DD4D: NonhierSphere::getIntersection(Point3D, Vector3D, Matrix4x4) (in ./rt)
+==47760==    by 0x100031131: GeometryNode::intersect(Point3D, Vector3D, Matrix4x4, MasterTempo*) (in ./rt)
+==47760==    by 0x100030600: SceneNode::intersect(Point3D, Vector3D, Matrix4x4, MasterTempo*) (in ./rt)
+==47760==    by 0x100017D6B: renderNextStrip(void*) (in ./rt)
+==47760==    by 0x457898: _pthread_body (in /usr/lib/system/libsystem_pthread.dylib)
+==47760==    by 0x457729: _pthread_start (in /usr/lib/system/libsystem_pthread.dylib)
+==47760==    by 0x45BFC8: thread_start (in /usr/lib/system/libsystem_pthread.dylib)
+==47760== 
+
+==47760== 121,122,584 (320 direct, 121,122,264 indirect) bytes in 1 blocks are definitely lost in loss record 102 of 102
+==47760==    at 0x6DFB: malloc (in /usr/local/Cellar/valgrind/3.9.0/lib/valgrind/vgpreload_memcheck-amd64-darwin.so)
+==47760==    by 0x9728D: operator new(unsigned long) (in /usr/lib/libc++.1.dylib)
+==47760==    by 0x100033700: gr_node_cmd (in ./rt)
+==47760==    by 0x11732: luaD_precall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x1A676: luaV_execute (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11A99: luaD_call (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11160: luaD_rawrunprotected (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x11CFE: luaD_pcall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0xE172: lua_pcall (in /usr/local/Cellar/lua/5.1.5/lib/liblua.5.1.5.dylib)
+==47760==    by 0x10003691C: run_lua(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&) (in ./rt)
+==47760==    by 0x100022F49: main (in ./rt)
+==47760== 
+==47760== LEAK SUMMARY:
+==47760==    definitely lost: 5,861,064 bytes in 39,067 blocks
+==47760==    indirectly lost: 121,122,864 bytes in 78 blocks
+==47760==      possibly lost: 0 bytes in 0 blocks
+==47760==    still reachable: 4,244 bytes in 4 blocks
+==47760==         suppressed: 25,144 bytes in 373 blocks
+==47760== Reachable blocks (those to which a pointer was found) are not shown.
+==47760== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==47760== 
+==47760== For counts of detected and suppressed errors, rerun with: -v
+==47760== Use --track-origins=yes to see where uninitialised values come from
+==47760== ERROR SUMMARY: 43949 errors from 17 contexts (suppressed: 190 from 64)

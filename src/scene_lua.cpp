@@ -241,6 +241,30 @@ int gr_nh_sphere_cmd(lua_State* L)
   return 1;
 }
 
+// Create a non-hierarchical tangle cube node
+extern "C"
+int gr_nh_tanglecube_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+  
+  gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
+  data->node = 0;
+
+  const char* name = luaL_checkstring(L, 1);
+
+  Point3D pos;
+  get_tuple(L, 2, &pos[0], 3);
+
+  double radius = luaL_checknumber(L, 3);
+
+  data->node = new GeometryNode(name, new NonhierTangleCube(pos, radius));
+
+  luaL_getmetatable(L, "gr.node");
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
 // Create a non-hierarchical box node
 extern "C"
 int gr_nh_box_cmd(lua_State* L)
@@ -396,7 +420,7 @@ int gr_render_cmd(lua_State* L)
   render(root->node, filename, width, height,
             eye, view, up, fov,
             ambient, lights);
-  
+
   return 0;
 }
 
@@ -616,6 +640,7 @@ static const luaL_reg grlib_functions[] = {
   {"texture", gr_texture_cmd},
   {"cube", gr_cube_cmd},
   {"nh_sphere", gr_nh_sphere_cmd},
+  {"nh_tanglecube", gr_nh_tanglecube_cmd},
   {"nh_box", gr_nh_box_cmd},
   {"mesh", gr_mesh_cmd},
   {"light", gr_light_cmd},

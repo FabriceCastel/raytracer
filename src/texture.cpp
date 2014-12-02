@@ -16,14 +16,35 @@ Texture::Texture(string name) :
 }
 
 Vector3D Texture::getUV(double u, double v){
-	int cx = (int)floor(u*tWidth);
-	int cy = (int)floor(v*tHeight);
+	int fx = (int)floor(u*tWidth);
+	int fy = (int)floor(v*tHeight);
+	//int cx = (int)ceil(u*tWidth);
+	//int cy = (int)ceil(v*tHeight);
 
-	int pixelIndex = tElems * (tWidth*cy + cx);
+	int pix;
+	pix = tElems * (tWidth*fy + fx);
+	Vector3D ff = Vector3D(tData[pix], tData[pix+1], tData[pix+2]);
+	//pix = tElems * (tWidth*cy + fx);
+	//Vector3D fc = Vector3D(tData[pix], tData[pix+1], tData[pix+2]);
+	//pix = tElems * (tWidth*fy + cx);
+	//Vector3D cf = Vector3D(tData[pix], tData[pix+1], tData[pix+2]);
+	//pix = tElems * (tWidth*cy + cx);
+	//Vector3D cc = Vector3D(tData[pix], tData[pix+1], tData[pix+2]);
 
-	double r = tData[pixelIndex    ];
-	double g = tData[pixelIndex + 1];
-	double b = tData[pixelIndex + 2];
+	// double wff = u*tWidth - fx + v*tHeight - fy;
+	// double wfc = u*tWidth - fx + cy - v*tHeight;
+	// double wcf = cx - u*tWidth + v*tHeight - fy;
+	// double wcc = cx - u*tWidth + cy - v*tHeight;
 
-	return Vector3D(r, g, b);
+	// double tw = wff + wfc + wcf + wcc;
+
+	// wff = wff/tw;
+	// wfc = wfc/tw;
+	// wcf = wcf/tw;
+	// wcc = wcc/tw;
+
+	//cout << "\n" << wff << "\n" << wfc << "\n" << wcf << "\n" << wcc << "\n";
+	//exit(1);
+
+	return ff;//wcc*ff + wcf*fc + wfc*cf + wff*cc;
 }

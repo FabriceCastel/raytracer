@@ -12,7 +12,6 @@ SceneNode::~SceneNode()
 }
 
 Intersection* SceneNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans, MasterTempo* mt){
-  int c = 0;
   Intersection* col = NULL;
   Intersection* tcol = NULL;
   for (ChildList::const_iterator iterator = m_children.begin(), end = m_children.end(); iterator != end; ++iterator) {
@@ -42,7 +41,6 @@ Intersection* SceneNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans,
 
       free(tcol);
     }
-    c++;
   }
   return col;
 }
@@ -115,14 +113,20 @@ GeometryNode::~GeometryNode()
 }
  
 
+void GeometryNode::tick(MasterTempo* mt){
+  //if(std::strcmp(m_name.c_str(), "tc") == 0){
+    m_primitive->tick(mt);
+  //}
+}
+
 Intersection* GeometryNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans, MasterTempo* mt){
-  if(std::strcmp(m_name.c_str(), "wall") == 0){
-    if(mt->getNoteStatus(2)){
-      m_material->setKD(Colour(0.05,0.05,0.05));
-    } else {
-      m_material->setKD(Colour(0.5, 0.7, 0.5));
-    }
-  }
+  // if(std::strcmp(m_name.c_str(), "wall") == 0){
+  //   if(mt->getNoteStatus(2)){
+  //     m_material->setKD(Colour(0.05,0.05,0.05));
+  //   } else {
+  //     m_material->setKD(Colour(0.5, 0.7, 0.5));
+  //   }
+  // }
 
   Intersection* inter = m_primitive->getIntersection(rayP, rayV, trans);
 
@@ -134,8 +138,6 @@ Intersection* GeometryNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 tra
     Vector3D rf = refraction(1.6, inter->getNormal(), rayP, inter->getPoint());
     inter->setRefAngle(rf);
   }
-
-
   
   inter->setMaterial(m_material);
   if(m_texture != NULL && (!hasMidiTrigger() || mt->getNoteStatus(getMidiTrigger()))){
@@ -171,9 +173,9 @@ void ParticleSystem::tick(MasterTempo* mt){
     int lifespan = 300;
     int midiNote = 6 + std::rand()%2;
     double minSize = 0;
-    double maxSize = 2;
-    double attack = 2;
-    double release = 0.4;
+    double maxSize = 0.1;
+    double attack = 0.1;
+    double release = 0.02;
     Particle particle(startPosition, direction, lifespan, midiNote, minSize, maxSize, attack, release);
     particles.push_front(particle);
   }
@@ -190,6 +192,12 @@ void ParticleSystem::tick(MasterTempo* mt){
       ++I;
     }
   }
+  // if(particles.size() > 2){
+  //   particleAlive = I->tick(mt);
+  //   if(!particleAlive){
+  //     particles.erase(I);
+  //   }
+  // }
 }
 
 Intersection* ParticleSystem::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans, MasterTempo* mt){
@@ -200,13 +208,18 @@ Intersection* ParticleSystem::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 t
 
   std::list<Particle>::iterator I = particles.begin();
   while(I != particles.end()){
-    ++I;
+    //++I;
     double rad = (*I).getCurrentSize();
-    if(rad <= 0) continue;
+    if(rad <= 0){
+      ++I;
+      continue;
+    }
 
     Point3D pos = (*I).getCurrentPosition();
     NonhierSphere particle = NonhierSphere(pos, rad);
     tcol = particle.getIntersection(rayP, rayV, trans);
+
+    ++I;
     
     if(col == NULL) col = tcol;
     else if(col != NULL && tcol != NULL){
@@ -228,14 +241,8 @@ Intersection* ParticleSystem::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 t
       c++;
     }
   }
-  //PhongMaterial* mat = (PhongMaterial*)malloc(sizeof(PhongMaterial));
+
   if(col != NULL){
-    // double r = 1.0*std::rand();
-    // double g = 1.0*std::rand();
-    // double b = 1.0*std::rand();
-    // r /= RAND_MAX;
-    // g /= RAND_MAX;
-    // b /= RAND_MAX;
     PhongMaterial* mat = new PhongMaterial(Colour(1,1,1), Colour(1,1,1), 200.0);
     col->setMaterial(mat);
   }

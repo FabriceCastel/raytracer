@@ -27,6 +27,10 @@ NonhierBox::~NonhierBox()
 {
 }
 
+void Primitive::tick(MasterTempo* mt){
+
+}
+
 NonhierTangleCube::~NonhierTangleCube(){}
 
 Intersection* Primitive::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans){
@@ -310,94 +314,6 @@ Intersection* intersectHeightMap(Point3D rayP, Vector3D rayV, Matrix4x4 trans, P
 }
 
 Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans){
-
-  rayV.normalize();
-
-  double roots[4];
-  double k = std::pow(rayV[0], 4) +
-             std::pow(rayV[1], 4) +
-             std::pow(rayV[2], 4);
-  //k = k / 1.001;
-  //k *= 0.999991;
-  //cout << k << "\n";
-  double a = 0;
-  double b = 0;
-  double c = 0;
-  double d = 0;
-  for(int i = 0; i < 3; i++){
-    a += 4 * pow(rayV[i], 3) * rayP[i];
-    b += 6 * pow(rayV[i], 2) * pow(rayP[i], 2) - 5*pow(rayV[i], 2);
-    c += 4 * rayV[i] * pow(rayP[i], 3) - 10*rayP[i]*rayV[i];
-    d += pow(rayP[i], 4) - 5*pow(rayP[i], 2);
-  }
-  d += 11.8;
-
-  //cout << "a = " << a << "\nb = " << b << "\nc = " << c << "\nd = " << d << "\nk = " << k << "\n--------------------------\n";
-  //exit(1);
-
-  a /= k; b /= k; c /= k; d /= k;
-  //a *= k; b *= k; c *= k; d *= k;
-  int rootCount = quarticRoots(a, b, c, d, roots);
-  if(rootCount == 0) return NULL;
-
-  //cout << "roots found!\n";
-  //exit(1);
-
-  double t = roots[0];
-  for(int i = 1; i < rootCount; i++){
-    if(roots[i] > 0 && roots[i] < t){
-      t = roots[i];
-    }
-  }
-
-  //cout << "Root count: " << rootCount << " - " << roots[0] << "\n";
-
-  if(t <= 0) return NULL;
-
-  //cout << "TESTSE";
-
-  Point3D sPoint = rayP + t*rayV;
-  Vector3D sNormal = Vector3D(0,0,0);
-
-  double derivatives[3] = {0,0,0};
-  for(int i = 0; i < 3; i++){
-    int aa = (i + 1)%3;
-    int ab = (i + 2)%3;
-    
-    derivatives[i] = 4*pow(sPoint[i], 3) - 10*sPoint[i];
-    // derivatives[i] += pow(sPoint[aa], 4) - 5*pow(sPoint[aa], 2);
-    // derivatives[i] += pow(sPoint[ab], 4) - 5*pow(sPoint[ab], 2);
-    //derivatives[i] += 11.8;
-    sNormal[i] = derivatives[i];//-1.0 / derivatives[i];
-  }
-
-  //sNormal.normalize();
-  if(sNormal.dot(rayV) > 0) sNormal = -1 * sNormal;
-  sNormal.normalize();
-  cout << sPoint << " - " << sNormal << "\n";
-
-  Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
-  *ans = Intersection(sPoint, sNormal, NULL);
-  return ans;
-
-
-
-
-
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
   rayV.normalize(); // just in case
   Vector3D v = rayP - m_pos;
 
@@ -466,32 +382,42 @@ Intersection* NonhierSphere::getIntersection(Point3D rayP, Vector3D rayV, Matrix
 
   //std::cout << "\nOrigin: " << rayP << "\nNormal: " << ans->getNormal() << "\nIntersection point: " << ans->getPoint() << "\nRefraction Angle: " << rf;
 
-  return ans;*/
+  return ans;
 }
 
 
 Intersection* NonhierTangleCube::getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans){
+  rayV.normalize();
+
+  //double scale = 1.0 / m_radius;  
+
   double roots[4];
-  double k = rayV[0] + rayV[1] + rayV[2];
+  double k = std::pow(rayV[0], 4) +
+             std::pow(rayV[1], 4) +
+             std::pow(rayV[2], 4);
+
+  k *= 1 + ((shapeDistortion-0.1) * 0.00008);
+
   double a = 0;
   double b = 0;
   double c = 0;
   double d = 0;
   for(int i = 0; i < 3; i++){
-    a += 3 * std::pow(rayV[i], 3) * rayP[i];
-    b += 6 * std::pow(rayV[i], 2) * std::pow(rayP[i], 2);
-    c += 4 * rayV[i] * std::pow(rayP[i], 3) - 10*rayP[i]*rayV[i];
-    d += std::pow(rayP[i], 4) - 5*std::pow(rayP[i], 2);
+    a += 4 * pow(rayV[i], 3) * rayP[i];
+    b += 6 * pow(rayV[i], 2) * pow(rayP[i], 2) - 5*pow(rayV[i], 2);
+    c += 4 * rayV[i] * pow(rayP[i], 3) - 10*rayP[i]*rayV[i];
+    d += pow(rayP[i], 4) - 5*pow(rayP[i], 2);
   }
-  d += 11.8;
+  d += 10;//11.8;
 
   a /= k; b /= k; c /= k; d /= k;
 
   int rootCount = quarticRoots(a, b, c, d, roots);
   if(rootCount == 0) return NULL;
 
-  double t = 0;
-  for(int i = 0; i < rootCount; i++){
+
+  double t = roots[0];
+  for(int i = 1; i < rootCount; i++){
     if(roots[i] > 0 && roots[i] < t){
       t = roots[i];
     }
@@ -499,7 +425,47 @@ Intersection* NonhierTangleCube::getIntersection(Point3D rayP, Vector3D rayV, Ma
 
   if(t <= 0) return NULL;
 
+  Point3D sPoint = rayP + t*rayV;
+  Vector3D sNormal = Vector3D(0,0,0);
+
+  for(int i = 0; i < 3; i++){
+    sNormal[i] = 4*pow(sPoint[i], 3) - 10*sPoint[i];
+  }
+
+  if(sNormal.dot(rayV) > 0) sNormal = -1 * sNormal;
+  sNormal.normalize();
+
   Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
-  *ans = Intersection(rayP + t*rayV, Vector3D(-0.5, 0.0, 0.5), NULL);
+  *ans = Intersection(sPoint, sNormal, NULL);
   return ans;
+}
+
+void NonhierTangleCube::tick(MasterTempo* mt){
+
+  if(mt->getNoteStatus(3)){
+
+    if(sdVel == 0){
+      sdVel = 0.3*(1.0 / RAND_MAX)*(std::rand() - 0.5*RAND_MAX);// * 0.01
+      while(abs(sdVel) < 0.1) sdVel *= 2;
+      //cout << "\n\n" << sdVel << "\n\n";
+      if(shapeDistortion > 0.7 && sdVel > 0) sdVel *= -1;
+      if(shapeDistortion < -0.8 && sdVel < 0) sdVel *= -0.8;
+    }
+
+    shapeDistortion += sdVel;
+    
+  } else {
+    // if(shapeDistortion > 0.8 && sdVel > 0){
+    //   sdVel /= 2;
+    //   shapeDistortion += sdVel;
+    //   //if(shapeDistortion > 0.8) shapeDistortion = 0.8;
+    // }
+    if(abs(sdVel) < 0.001)
+      sdVel = 0;
+    else{
+      shapeDistortion += sdVel;
+      sdVel /= 2.4;
+    }
+  }
+  //cout << "\nEND OF TICK: sdVel = " << sdVel << " - shapeDistortion = " << shapeDistortion << "\n";
 }

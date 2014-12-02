@@ -4,15 +4,53 @@ Fab's Raytracer
 Objectives:
 
 1. ~~Texture mapping~~
+
+![Alt text](/samples/sampletexture.png?raw=true "Sample texture mapping")
+
 2. ~~Volumetric lighting~~
+
+![Alt text](/samples/samplesoftshadow.png?raw=true "Sample soft shadow")
+
 3. Height mapping on a sphere [BACKBURNER]
+
+![Alt text](samples/sampleheight1.png?raw=true "Sample render")
+
 4. ~~Post-processing filter~~
+
+![Alt text](samples/prefilter.png?raw=true "Sample render")
+![Alt text](samples/postfilter.png?raw=true "Sample render")
+
 5. ~~Refraction~~
+
+![Alt text](samples/samplebetterglass.png?raw=true "Sample render")
+
 6. ~~Blinn-Phong lighting (to replace current Phong model)~~
+
+![Alt text](samples/sampleblinn.png?raw=true "Sample render")
+
 7. ~~Generate animation frames based off MIDI input~~
+
+(see video)
+
 8. ~~Particle system~~
+
+![Alt text](samples/sampleparticles.png?raw=true "Sample particles")
+
 9. ~~Optimize raytracer with multithreading~~
+
+Stats for a 500 frame render on my 2014 macbook pro:
+
+|                        | Single thread | 16 threads |
+|------------------------|---------------|------------|
+| Average time per frame | 1.39s         | 0.54s      |
+| Total time             | 11:34         | 4:30       |
+
 10. ~~4th degree implicit surface primitive with genus > 0~~
+
+![Alt text](/samples/sampleimplicit3.png?raw=true "Sample implicit surface")
+
+
+
 
 A ray tracer written for CS488, to be extended as a final project due Dec 1st 2014, I'm keeping progress logs below:
 

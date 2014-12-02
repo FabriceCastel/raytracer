@@ -50,6 +50,7 @@ class Primitive {
 public:
   virtual ~Primitive();
   virtual Intersection* getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans);
+  virtual void tick(MasterTempo* mt);
 };
 
 class Sphere : public Primitive {
@@ -96,15 +97,18 @@ private:
 class NonhierTangleCube : public Primitive {
 public:
   NonhierTangleCube(const Point3D& pos, double radius) :
-    m_pos(pos), m_radius(radius){}
+    m_pos(pos), m_radius(radius), shapeDistortion(0.3), sdVel(0){}
 
   virtual ~NonhierTangleCube();
 
   virtual Intersection* getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans);
+  virtual void tick(MasterTempo* mt);
 
 private:
   Point3D m_pos;
   double m_radius;
+  double shapeDistortion;
+  double sdVel;
 };
 
 #endif

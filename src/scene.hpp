@@ -115,6 +115,7 @@ public:
 
   bool hasMidiTrigger(){return (m_trigger != -1);};
   int getMidiTrigger(){return m_trigger;};
+  virtual void tick(MasterTempo* mt);
 
 protected:
   Material* m_material;

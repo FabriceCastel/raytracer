@@ -6,7 +6,7 @@
 #include <sstream>
 #include <pthread.h>
 
-#define NUM_THREADS 1
+#define NUM_THREADS 8
 
 void printProgBar( int percent ){
 	std::string bar;
@@ -67,9 +67,9 @@ void *renderNextStrip(void *params){
 			Intersection* initHit = NULL;
 
 			if(col == NULL){
-				rbuffer[rbufferindex++] = 1;
-				rbuffer[rbufferindex++] = 1;
-				rbuffer[rbufferindex++] = 1;
+				rbuffer[rbufferindex++] = 0;
+				rbuffer[rbufferindex++] = 0;
+				rbuffer[rbufferindex++] = 0;
 			} else {
 				initHit = (Intersection*)malloc(sizeof(Intersection));
 				*initHit = Intersection(col->getPoint(), col->getNormal(), col->getMaterial());
@@ -108,19 +108,12 @@ void *renderNextStrip(void *params){
 					double opacityFactor = initHit->getNormal().dot(v);
 					if(opacityFactor < 0) opacityFactor *= -1;
 
-					if(opacityFactor > 1){
-						std::cout << "opacityFactor = " << opacityFactor << "\n";
-						exit(1);
-					}
-
 					opacityFactor = 1 - opacityFactor;
 					opacityFactor = pow(opacityFactor, 3) + pow(opacityFactor + 0.1, 5);
 					opacityFactor /= 2.0;
 					if(opacityFactor > 1) opacityFactor = 1;
-					//opacityFactor = 1 - opacityFactor;
 					
-
-					double transparancy = 0.9 * (1.0 - opacityFactor);//300.0 / glassTraversed;
+					double transparancy = 0.9 * (1.0 - opacityFactor);
 					Colour glassKD = initHit->getMaterial()->getKD();
 					Vector3D glassDiff = Vector3D(glassKD.R(), glassKD.G(), glassKD.B());
 					Vector3D glassSpec = Vector3D(0.0, 0.0, 0.0);
@@ -191,9 +184,9 @@ void render(// What to render
 	// root->add_child(ps);
 
 	int framerate = 25;
-	const double FRAME_COUNT = 1;//1165;//framerate * 71.7;
+	const double FRAME_COUNT = 1165;//framerate * 71.7;
 	MasterTempo masterTempo = MasterTempo("../data/1.mid", 180.0, framerate, 1);
-	int SSAAFactor = 1;
+	int SSAAFactor = 4;
 	height *= SSAAFactor;
 	width *= SSAAFactor;
 
@@ -206,7 +199,7 @@ void render(// What to render
 	const long double renderStartTime = time(0);
 	long double previousFrameFinishTime = renderStartTime;
 
-	for(int frame = 1; frame <= FRAME_COUNT; frame++){
+	for(int frame = 400; frame <= FRAME_COUNT; frame++){
 		masterTempo.updateFrame(frame);
 		rbufferindex=0;
 
@@ -215,8 +208,24 @@ void render(// What to render
 		//
 		Matrix4x4 world = Matrix4x4();
 		world = world.rotateX(frame);
+		Point3D zeye = eye;
+		double frameC = frame * (100.0/216.0);
+		if(frame > 216) frameC = 100;
+		if(frame > 800){
+			frameC = 100 + (frame - 800)*0.35;
+			// double start = 100;
+			// double finish = 100 + (1066 - 800)*0.35;
+			// frameC = (frameC - start) / (finish - start);
+			// frameC *= frameC * (finish - start);
+			// frameC += start;
+		}
+		if(frame > 1066) frameC = 100 + (1066-800)*0.35; // 1066
+		zeye[2] += frameC/FRAME_COUNT * 200;
+
+
+
 		StripRenderParams params = StripRenderParams(root, width, height,
-           eye, view, up, fov, ambient, lights, &masterTempo, rbuffer, world);
+           zeye, view, up, fov, ambient, lights, &masterTempo, rbuffer, world);
 
 		pthread_t threads[NUM_THREADS];
 		pthread_attr_t attr;
@@ -323,14 +332,14 @@ void render(// What to render
 		system(ffmpegCommand);
 
 		stringstream sa;
-		sa << "ffmpeg -i temp.avi -i audio.wav -y -f avi -b 1.5M -s " << width/SSAAFactor << "x" << height/SSAAFactor << " " << filename << ".avi";
+		sa << "ffmpeg -i temp.avi -i audio.wav -y -f mp4 -qscale 1 -s " << width/SSAAFactor << "x" << height/SSAAFactor << " " << filename << ".mp4";
 		const char* ffmpegAudio = sa.str().c_str();
 		
 		cout << "\n\n";
 		system(ffmpegAudio);
 		//system("rm *.png");
 		system("clear");
-		cout << "Render complete: " << filename << ".avi\n";
+		cout << "Render complete: " << filename << ".mp4\n";
 
 	}
 }
@@ -461,7 +470,7 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersecti
 			//}
 		}
 
-		shadowWeight = 0;
+		//shadowWeight = 0;
 
 		if(shadowWeight < 1){
 			Colour lightColour = (*I)->colour;
@@ -515,8 +524,5 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersecti
 	    	//fc = Vector3D(blinnSpec[0], spec[0], 0);
 	    }
 	}
-	// double z = col->getPoint()[2];
-	// double grey = z/4.0 + 0.4;//(z + 5) / 10;
-	// fc = Vector3D(grey, grey, grey);
 	return fc;
 }
