@@ -437,6 +437,11 @@ Intersection* NonhierTangleCube::getIntersection(Point3D rayP, Vector3D rayV, Ma
 
   Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
   *ans = Intersection(sPoint, sNormal, NULL);
+
+  ans->setRefraction(true);
+  Vector3D rf = refraction(1.6, ans->getNormal(), rayP, ans->getPoint());
+  ans->setRefAngle(rf);
+
   return ans;
 }
 
@@ -445,11 +450,12 @@ void NonhierTangleCube::tick(MasterTempo* mt){
   if(mt->getNoteStatus(3)){
 
     if(sdVel == 0){
-      sdVel = 0.3*(1.0 / RAND_MAX)*(std::rand() - 0.5*RAND_MAX);// * 0.01
-      while(abs(sdVel) < 0.1) sdVel *= 2;
+      sdVel = 0.1*(1.0 / RAND_MAX)*(std::rand() - 0.5*RAND_MAX);// * 0.01
+      while(abs(sdVel) < 0.03) sdVel *= 2;
       //cout << "\n\n" << sdVel << "\n\n";
-      if(shapeDistortion > 0.7 && sdVel > 0) sdVel *= -1;
-      if(shapeDistortion < -0.8 && sdVel < 0) sdVel *= -0.8;
+      if(shapeDistortion > 0.7 && sdVel > 0) sdVel *= -0.8;
+      //if(shapeDistortion < -0.55 && sdVel < 0) sdVel *= -0.8;
+      else if(shapeDistortion < 0.4 && sdVel < 0) sdVel *= -0.2;
     }
 
     shapeDistortion += sdVel;

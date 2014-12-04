@@ -80,6 +80,8 @@ void *renderNextStrip(void *params){
 					initHit->setTextureUV(col->getU(), col->getV());
 				}
 
+				int refractionBailout = 6;
+				int curRefCount = 0;
 				while(col != NULL && col->isRefraction()){
 					Point3D point = col->getPoint();
 					Vector3D normal = col->getNormal();
@@ -88,6 +90,8 @@ void *renderNextStrip(void *params){
 					free(col);
 					col = root->intersect(point, refAngle, world, mt);
 					rayWasRefracted = true;
+					curRefCount++;
+					if(curRefCount > refractionBailout) break;
 				}
 
 				Vector3D fc = Vector3D(1,1,1);
@@ -186,7 +190,7 @@ void render(// What to render
 	int framerate = 25;
 	const double FRAME_COUNT = 1165;//framerate * 71.7;
 	MasterTempo masterTempo = MasterTempo("../data/1.mid", 180.0, framerate, 1);
-	int SSAAFactor = 4;
+	int SSAAFactor = 1;
 	height *= SSAAFactor;
 	width *= SSAAFactor;
 
@@ -199,7 +203,7 @@ void render(// What to render
 	const long double renderStartTime = time(0);
 	long double previousFrameFinishTime = renderStartTime;
 
-	for(int frame = 410; frame <= FRAME_COUNT; frame++){
+	for(int frame = 216; frame <= FRAME_COUNT; frame++){
 		masterTempo.updateFrame(frame);
 		rbufferindex=0;
 
@@ -518,7 +522,6 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersecti
 	    	blinnTerm = std::pow(blinnTerm, shininess);
 	    	//std::cout << blinnTerm << "\n";
 	    	blinnSpec = blinnTerm * specColour;
-	    	blinnSpec = spec; // FORCE PHONG
 
 
 	    	fc = fc + (1.0 - shadowWeight)*(diffuse + (shininess != 0 ? blinnSpec : 0*blinnSpec));
