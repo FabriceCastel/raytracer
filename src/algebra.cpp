@@ -71,10 +71,10 @@ Vector3D refraction(double refIdx, Vector3D normal, Point3D rayOrigin, Point3D p
   return transmissive;
 }
 
-double intersectPlane(Point3D p, Vector3D v, Point3D planeP, Vector3D planeN){
-  if(std::abs(v.dot(planeN)) < 0.000001)
+double intersectPlane(Ray ray, Point3D planeP, Vector3D planeN){
+  if(std::abs(ray.vector.dot(planeN)) < 0.000001)
     return 0.0; // the plane and ray are parallel
-  return (planeP - p).dot(planeN) / v.dot(planeN);
+  return (planeP - ray.point).dot(planeN) / ray.vector.dot(planeN);
 }
 
 double Vector3D::normalize()

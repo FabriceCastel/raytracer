@@ -49,7 +49,7 @@ private:
 class Primitive {
 public:
   virtual ~Primitive();
-  virtual Intersection* getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans);
+  virtual Intersection* getIntersection(Ray ray, Matrix4x4 trans);
   virtual void tick(MasterTempo* mt);
 };
 
@@ -71,7 +71,7 @@ public:
   }
   virtual ~NonhierSphere();
 
-  virtual Intersection* getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans);
+  virtual Intersection* getIntersection(Ray ray, Matrix4x4 trans);
 
 private:
   Point3D m_pos;
@@ -87,7 +87,7 @@ public:
   
   virtual ~NonhierBox();
 
-  virtual Intersection* getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans);
+  virtual Intersection* getIntersection(Ray ray, Matrix4x4 trans);
 
 private:
   Point3D m_pos;
@@ -101,7 +101,7 @@ public:
 
   virtual ~NonhierTangleCube();
 
-  virtual Intersection* getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans);
+  virtual Intersection* getIntersection(Ray ray, Matrix4x4 trans);
   virtual void tick(MasterTempo* mt);
 
 private:

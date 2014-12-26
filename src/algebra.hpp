@@ -498,7 +498,12 @@ inline std::ostream& operator <<(std::ostream& os, const Colour& c)
   return os << "c<" << c.R() << "," << c.G() << "," << c.B() << ">";
 }
 
-double intersectPlane(Point3D p, Vector3D n, Point3D planeP, Vector3D planeN);
+struct Ray{
+  Point3D point;
+  Vector3D vector;
+};
+
+double intersectPlane(Ray ray, Point3D planeP, Vector3D planeN);
 Vector3D refraction(double refIdx, Vector3D normal, Point3D rayOrigin, Point3D point);
 double xyToLat(double x, double y);
 double zrToLng(double z, double r);

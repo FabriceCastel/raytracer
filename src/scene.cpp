@@ -11,19 +11,19 @@ SceneNode::~SceneNode()
 {
 }
 
-Intersection* SceneNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans, MasterTempo* mt){
+Intersection* SceneNode::intersect(Ray ray, Matrix4x4 trans, MasterTempo* mt){
   Intersection* col = NULL;
   Intersection* tcol = NULL;
   for (ChildList::const_iterator iterator = m_children.begin(), end = m_children.end(); iterator != end; ++iterator) {
-    tcol = (*iterator)->intersect(rayP, rayV, m_trans*trans, mt);
+    tcol = (*iterator)->intersect(ray, m_trans*trans, mt);
     
     if(col == NULL) col = tcol;
     else if(col != NULL && tcol != NULL){
       // compare both intersections and keep the closer one as col
       Point3D pt = tcol->getPoint();
       Point3D pc = col->getPoint();
-      double ptn = (pt - rayP).normalize();
-      double pcn = (pc - rayP).normalize();
+      double ptn = (pt - ray.point).normalize();
+      double pcn = (pc - ray.point).normalize();
 
       if(ptn < pcn){
       	col->setPoint(tcol->getPoint());
@@ -119,7 +119,7 @@ void GeometryNode::tick(MasterTempo* mt){
   //}
 }
 
-Intersection* GeometryNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans, MasterTempo* mt){
+Intersection* GeometryNode::intersect(Ray ray, Matrix4x4 trans, MasterTempo* mt){
   // if(std::strcmp(m_name.c_str(), "wall") == 0){
   //   if(mt->getNoteStatus(2)){
   //     m_material->setKD(Colour(0.05,0.05,0.05));
@@ -128,14 +128,14 @@ Intersection* GeometryNode::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 tra
   //   }
   // }
 
-  Intersection* inter = m_primitive->getIntersection(rayP, rayV, trans);
+  Intersection* inter = m_primitive->getIntersection(ray, trans);
 
   if(inter == NULL) return NULL;
   
 
   if(std::strcmp(m_name.c_str(), "s1") == 0){
     inter->setRefraction(true);
-    Vector3D rf = refraction(1.6, inter->getNormal(), rayP, inter->getPoint());
+    Vector3D rf = refraction(1.6, inter->getNormal(), ray.point, inter->getPoint());
     inter->setRefAngle(rf);
   }
   
@@ -200,7 +200,7 @@ void ParticleSystem::tick(MasterTempo* mt){
   // }
 }
 
-Intersection* ParticleSystem::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 trans, MasterTempo* mt){
+Intersection* ParticleSystem::intersect(Ray ray, Matrix4x4 trans, MasterTempo* mt){
 
   Intersection* col = NULL;
   Intersection* tcol = NULL;
@@ -217,7 +217,7 @@ Intersection* ParticleSystem::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 t
 
     Point3D pos = (*I).getCurrentPosition();
     NonhierSphere particle = NonhierSphere(pos, rad);
-    tcol = particle.getIntersection(rayP, rayV, trans);
+    tcol = particle.getIntersection(ray, trans);
 
     ++I;
     
@@ -226,8 +226,8 @@ Intersection* ParticleSystem::intersect(Point3D rayP, Vector3D rayV, Matrix4x4 t
       // compare both intersections and keep the closer one as col
       Point3D pt = tcol->getPoint();
       Point3D pc = col->getPoint();
-      double ptn = (pt - rayP).normalize();
-      double pcn = (pc - rayP).normalize();
+      double ptn = (pt - ray.point).normalize();
+      double pcn = (pc - ray.point).normalize();
 
       if(ptn < pcn){
         col->setPoint(tcol->getPoint());

@@ -7,6 +7,7 @@
 #include <pthread.h>
 
 #define NUM_THREADS 8
+#define MAX_REFRACTION_COUNT 6
 
 void printProgBar( int percent ){
 	std::string bar;
@@ -26,13 +27,11 @@ void printProgBar( int percent ){
 	std::cout<< percent << "%     " << std::flush;
 }
 
-//#define FRAME_COUNT (30 * 71.7)
 
 void *renderNextStrip(void *params){
 	StripRenderParams* renderParams = (StripRenderParams*) params;
 
     int height = renderParams->getHeight();
-
 	int y = renderParams->getNextRow();
 	MasterTempo* mt = renderParams->getMt();
 	SceneNode* root = renderParams->getRoot();
@@ -47,7 +46,6 @@ void *renderNextStrip(void *params){
     Matrix4x4 world = renderParams->getWorld();
 
 	while(y < height){
-		//cout << "Rendering " << y << "\n";
 		for(int x = 0; x < width; x++){
 			int rbufferindex = 3*(y*width + x);
 			double fovx = M_PI * ((double)fov/360.0);
@@ -63,7 +61,9 @@ void *renderNextStrip(void *params){
 			v.normalize();
 			bool rayWasRefracted = false;
 
-			Intersection* col = root->intersect(pixel, v, world, mt);
+			Ray ray = {pixel, v};
+
+			Intersection* col = root->intersect(ray, world, mt);
 			Intersection* initHit = NULL;
 
 			if(col == NULL){
@@ -80,7 +80,6 @@ void *renderNextStrip(void *params){
 					initHit->setTextureUV(col->getU(), col->getV());
 				}
 
-				int refractionBailout = 6;
 				int curRefCount = 0;
 				while(col != NULL && col->isRefraction()){
 					Point3D point = col->getPoint();
@@ -88,10 +87,11 @@ void *renderNextStrip(void *params){
 					normal.normalize();
 					Vector3D refAngle = col->getRefAngle();
 					free(col);
-					col = root->intersect(point, refAngle, world, mt);
+					Ray r = {point, refAngle};
+					col = root->intersect(r, world, mt);
 					rayWasRefracted = true;
 					curRefCount++;
-					if(curRefCount > refractionBailout) break;
+					if(curRefCount > MAX_REFRACTION_COUNT) break;
 				}
 
 				Vector3D fc = Vector3D(1,1,1);
@@ -175,22 +175,11 @@ void render(// What to render
 	const std::list<Light*>& lights
 	)
 {
-	//ParticleSystem ps("snow", Vector3D(0, -0.00001, 0), Point3D(0,0,0), 200.0, 1.0);
-	
-	// cout << "TEST\n";
-	// ParticleSystem ptest = ParticleSystem("snow", Vector3D(0, -0.00001, 0), Point3D(0,0,0), 200.0, 1.0);
-	// cout << "TESTSTST\n";
-	// ParticleSystem* ps = (ParticleSystem*)malloc(sizeof(ptest));
-	// *ps = ptest;
-
-	// cout << "TEST\n";
-	// //exit(1);
-	// root->add_child(ps);
 
 	int framerate = 25;
-	const double FRAME_COUNT = 1165;//framerate * 71.7;
+	const double FRAME_COUNT = 10000;//1165;//framerate * 71.7;
 	MasterTempo masterTempo = MasterTempo("../data/1.mid", 180.0, framerate, 1);
-	int SSAAFactor = 1;
+	int SSAAFactor = 4;
 	height *= SSAAFactor;
 	width *= SSAAFactor;
 
@@ -203,7 +192,7 @@ void render(// What to render
 	const long double renderStartTime = time(0);
 	long double previousFrameFinishTime = renderStartTime;
 
-	for(int frame = 216; frame <= FRAME_COUNT; frame++){
+	for(int frame = 1; frame <= FRAME_COUNT; frame++){
 		masterTempo.updateFrame(frame);
 		rbufferindex=0;
 
@@ -212,24 +201,9 @@ void render(// What to render
 		//
 		Matrix4x4 world = Matrix4x4();
 		world = world.rotateX(frame);
-		Point3D zeye = eye;
-		double frameC = frame * (100.0/216.0);
-		if(frame > 216) frameC = 100;
-		if(frame > 800){
-			frameC = 100 + (frame - 800)*0.35;
-			// double start = 100;
-			// double finish = 100 + (1066 - 800)*0.35;
-			// frameC = (frameC - start) / (finish - start);
-			// frameC *= frameC * (finish - start);
-			// frameC += start;
-		}
-		if(frame > 1066) frameC = 100 + (1066-800)*0.35; // 1066
-		zeye[2] += frameC/FRAME_COUNT * 200;
-
-
 
 		StripRenderParams params = StripRenderParams(root, width, height,
-           zeye, view, up, fov, ambient, lights, &masterTempo, rbuffer, world);
+           eye, view, up, fov, ambient, lights, &masterTempo, rbuffer, world);
 
 		pthread_t threads[NUM_THREADS];
 		pthread_attr_t attr;
@@ -259,19 +233,6 @@ void render(// What to render
 		//
 		// RENDER GEOMETRY
 		//
-
-		if(masterTempo.getNoteStatus(3))
-			filterWeight = 1.0;
-		else if(filterWeight > 0)
-			filterWeight -= filterRelease;
-		if(filterWeight < 0)
-			filterWeight = 0;
-
-		if(filterWeight > 0)
-			applySinCityFilter(rbuffer, height, width, filterWeight);
-
-		if(masterTempo.getNoteStatus(0))
-			applyCocaineFilter(rbuffer, height, width);
 
 		long double delay = previousFrameFinishTime;
 		previousFrameFinishTime = time(0);
@@ -345,78 +306,11 @@ void render(// What to render
 		system("clear");
 		cout << "Render complete: " << filename << ".mp4\n";
 
+	} else {
+		cout << "\n";
 	}
 }
 
-void applyCocaineFilter(double* rbuf, int bufheight, int bufwidth){
-	string cocaineImage = "../data/cocaine.png";
-	Image cocaine;
-	cocaine.loadPng(cocaineImage);
-	int width = cocaine.width();
-	int height = cocaine.height();
-	int numElements = cocaine.elements();
-	double* cocaineData = cocaine.data();
-
-	float u,v;
-	int cx, cy;
-
-	for(int h = 0; h < bufheight; h++){
-		for(int w = 0; w < bufwidth; w++){
-			u = ((float)w) / bufwidth;
-			v = ((float)h) / bufheight;
-			cx = (int)floor(u*width);
-			cy = (int)floor(v*height);
-			double cval = cocaineData[numElements*(width*cy + cx)];
-			int bindex = 3*(h*bufwidth + w);
-			if(cval < 0.5){
-				rbuf[bindex++] = 0;
-				rbuf[bindex++] = 0;
-				rbuf[bindex++] = 0;
-			} else {
-				rbuf[bindex++] += 0.2;
-				rbuf[bindex++] += 0.4;
-				rbuf[bindex++] += 0.3;
-			}
-		}
-	}
-}
-
-void applySinCityFilter(double* rbuf, int height, int width, double filterWeight){
-	// string alig = "../data/ali_g.png";
-	// Image ali;
-	// ali.loadPng(alig);
-	// int aliw = ali.width();
-	// int alih = ali.height();
-	// int aliElems = ali.elements(); // the number of doubles per pixel
-	// double* aliData = ali.data();
-	// int aliIndex = 0;
-	double contrastThreshold = 0.05;
-	double coontrastStrength = 3.0;
-	
-	int bufIndex = 0;
-	for(int h = 0; h < height; h++){
-		for(int w = 0; w < width; w++){
-			//std::cout << "BIDX " << bufIndex << "\n";
-			Vector3D orig = Vector3D(rbuf[bufIndex],rbuf[bufIndex+1],rbuf[bufIndex+2]);
-			double greyscale = 0.33333 * orig.dot(Vector3D(1,1,1));
-			Vector3D final = Vector3D(greyscale, greyscale, greyscale);
-
-			double gWeight = smoothstep(0.0, 0.6, orig[0] - (orig[1]+orig[2])/2);
-
-			final = (1.0 - gWeight)*final + gWeight*Vector3D(orig[0]*1.1, orig[1]*0.6, orig[2]*0.6);
-
-			for(int g = 0; g < 3; g++){
-				final[g] = std::pow(final[g] + contrastThreshold, coontrastStrength);
-			}
-
-
-			rbuf[bufIndex    ] = filterWeight*final[0] + (1 - filterWeight)*orig[0];
-			rbuf[bufIndex + 1] = filterWeight*final[1] + (1 - filterWeight)*orig[1];
-			rbuf[bufIndex + 2] = filterWeight*final[2] + (1 - filterWeight)*orig[2];
-			bufIndex += 3;
-		}
-	}
-}
 
 
 Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersection* col, Point3D eye, SceneNode* root, MasterTempo* mt){
@@ -446,65 +340,28 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersecti
 			point[2] + fp2*normal[2]);
 		Vector3D pointToLight = lpos - point;
 		pointToLight.normalize();
-		//Intersection* shadow = root->intersect(point2, pointToLight, Matrix4x4(), mt);
 
 		Intersection* shadow;
-		int resolution = 1;
-		double lightSize = 0;//40.0;
-		double spread = 0.7;
-		double shadowWeight = 0;
-		double xi, yi, zi;
 		
-
-		for(int x = 0; x < resolution; x++){
-			double xShift = (std::rand()  * spread/RAND_MAX - (spread/2)/RAND_MAX) * lightSize;
-			double yShift = (std::rand()  * spread/RAND_MAX - (spread/2)/RAND_MAX) * lightSize;
-			double zShift = (std::rand()  * spread/RAND_MAX - (spread/2)/RAND_MAX) * lightSize;
-			//for(int y = 0; y < resolution; y++){
-				//for(int z = 0; z < resolution; z++){
-					//xi = lightSize + xShift;//((double)x)/resolution;// + xShift;
-					//yi = lightSize + yShift;
-					//zi = lightSize * ((double)z)/resolution;// + zShift;
-					shadow = root->intersect(point2, Point3D(lpos[0]+xShift, lpos[1]+yShift, lpos[2]+zShift) - point2, Matrix4x4(), mt);
-					if(shadow != NULL){
-						shadowWeight += 1.0 / (resolution);//*resolution);
-						free(shadow);
-					}
-				//}
-			//}
-		}
-
-		//shadowWeight = 0;
-
-		if(shadowWeight < 1){
+		Ray r = {point2, lpos - point2};
+		shadow = root->intersect(r, Matrix4x4(), mt);
+		if(shadow != NULL){
+			free(shadow);
+		} else {
 			Colour lightColour = (*I)->colour;
 			Vector3D lcol = Vector3D(lightColour.R(), lightColour.G(), lightColour.B());
-	    	Vector3D iv = lpos - point; // incident vector
-	    	Vector3D lpnorm = point - lpos;
-	    	lpnorm.normalize();
-
+	    	
 	    	Vector3D tnorm = normal;
 	    	tnorm.normalize();
 	    	Vector3D s = lpos - point;
 	    	s.normalize();
-	    	Vector3D v = eye - point;
-	    	v.normalize();
-	    	// R = V - 2N(V . N)
-	    	Vector3D r = iv - 2*(iv.dot(normal))*normal;
-	    	r = -1 * r;
-	    	r.normalize();
+
 	    	double sdn = std::max(s.dot(tnorm), 0.0);
 	    	Vector3D diffuse = sdn * Vector3D(lcol[0] * kd.R(),
 	    		lcol[1] * kd.G(),
 	    		lcol[2] * kd.B());
-	    	Vector3D spec = Vector3D(0, 0, 0);
-	    	if(shininess > 1){
-		    	spec = std::pow(std::max(r.dot(v), 0.0), shininess) * Vector3D(ks.R() * lcol[0],
-		    		ks.G() * lcol[1],
-		    		ks.B() * lcol[2]);
-	    	}
 
-	    	// BLINN-PHONG SPEC
+	    	// BLINN SPEC
 	    	Vector3D lightDirection = lpos - point;
 	    	lightDirection.normalize();
 	    	float cosAngInsidence = normal.dot(lightDirection);
@@ -517,15 +374,11 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersecti
 	    	halfAngle.normalize();
 	    	double blinnTerm = halfAngle.dot(normal);
 	    	if(blinnTerm < 0 || cosAngInsidence == 0.0) blinnTerm = 0;
-	    	if(blinnTerm > 1) blinnTerm = 1;
-	    	//std::cout << blinnTerm << "\n";
-	    	blinnTerm = std::pow(blinnTerm, shininess);
-	    	//std::cout << blinnTerm << "\n";
-	    	blinnSpec = blinnTerm * specColour;
+	    	else if(blinnTerm > 1) blinnTerm = 1;
+	    	blinnSpec = std::pow(blinnTerm, shininess) * specColour;
 
 
-	    	fc = fc + (1.0 - shadowWeight)*(diffuse + (shininess != 0 ? blinnSpec : 0*blinnSpec));
-	    	//fc = Vector3D(blinnSpec[0], spec[0], 0);
+	    	fc = fc + diffuse + (shininess > 0 ? blinnSpec : 0*blinnSpec);
 	    }
 	}
 	return fc;

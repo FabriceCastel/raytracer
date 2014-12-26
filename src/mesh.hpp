@@ -15,7 +15,7 @@ public:
 
   typedef std::vector<int> Face;
 
-  virtual Intersection* getIntersection(Point3D rayP, Vector3D rayV, Matrix4x4 trans);
+  virtual Intersection* getIntersection(Ray ray, Matrix4x4 trans);
   
 private:
   std::vector<Point3D> m_verts;
