@@ -1,7 +1,17 @@
 Fab's Raytracer
 ===============
 
-Objectives:
+# December 26th - 11:25am
+
+The deadline is long gone; I wound up scraping a glorious 93% with this project and a boatload of satisfaction at what I've been able to accomplish. The code in its current state is rather horrid and sloppy, so for the next little while I plan to refactor it. What comes next will probably be procedural shenanigans.
+
+# December 4th - 12:05am
+
+I've uploaded a video of the final result. Pretty pleased with myself.
+
+https://www.youtube.com/watch?v=E9VATx3Iies
+
+These were the objectives for the project:
 
 1. ~~Texture mapping~~
 2. ~~Volumetric lighting~~
@@ -13,12 +23,6 @@ Objectives:
 8. ~~Particle system~~
 9. ~~4th degree implicit surface primitive with genus > 0~~
 10. ~~Optimize raytracer with multithreading~~
-
-# December 4th - 12:05am
-
-I've uploaded a video of the final result. Pretty pleased with myself.
-
-https://www.youtube.com/watch?v=E9VATx3Iies
 
 # November 29th - 9:30pm
 
