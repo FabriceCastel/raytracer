@@ -7,6 +7,9 @@
 
 class Intersection {
 public:
+  Intersection(){
+    initialized = false;
+  }
   Intersection(Point3D iPoint, Vector3D normal, Material* material)
     : p(iPoint), n(normal), mat(material){
       refraction = false;
@@ -14,6 +17,7 @@ public:
       texture = Vector3D(0,0,0);
       u = -1;
       v = -1;
+      initialized = true;
     };
   virtual ~Intersection();
   Point3D getPoint(){ return p; };
@@ -21,9 +25,15 @@ public:
   Material* getMaterial() { return mat; };
   bool isRefraction(){return refraction;};
   Vector3D getRefAngle(){return refAngle;};
-
-  void setPoint(Point3D point){ p = point; };
-  void setNormal(Vector3D normal){ n = normal; };
+  
+  void setPoint(Point3D point){ 
+    p = point;
+    initialized = true;
+  };
+  void setNormal(Vector3D normal){
+    n = normal;
+    initialized = true;
+  };
   void setMaterial(Material* material){ mat = material; };
   void setRefraction(bool ref){refraction = ref;};
   void setRefAngle(Vector3D r){refAngle = r;};
@@ -34,8 +44,10 @@ public:
   double getU(){return u;};
   double getV(){return v;};
   void clearTexture(){ht = false;};
+  bool isValid(){return initialized;};
 
 private:
+  bool initialized = false;
   Point3D p;
   Vector3D n, refAngle;
   Material* mat;
@@ -49,7 +61,7 @@ private:
 class Primitive {
 public:
   virtual ~Primitive();
-  virtual Intersection* getIntersection(Ray ray, Matrix4x4 trans);
+  virtual void getIntersection(Ray ray, Intersection &inter, Matrix4x4 trans);
   virtual void tick(MasterTempo* mt);
 };
 
@@ -71,7 +83,7 @@ public:
   }
   virtual ~NonhierSphere();
 
-  virtual Intersection* getIntersection(Ray ray, Matrix4x4 trans);
+  virtual void getIntersection(Ray ray, Intersection &inter, Matrix4x4 trans);
 
 private:
   Point3D m_pos;
@@ -87,7 +99,7 @@ public:
   
   virtual ~NonhierBox();
 
-  virtual Intersection* getIntersection(Ray ray, Matrix4x4 trans);
+  virtual void getIntersection(Ray ray, Intersection &inter, Matrix4x4 trans);
 
 private:
   Point3D m_pos;
@@ -101,7 +113,7 @@ public:
 
   virtual ~NonhierTangleCube();
 
-  virtual Intersection* getIntersection(Ray ray, Matrix4x4 trans);
+  virtual void getIntersection(Ray ray, Intersection &inter, Matrix4x4 trans);
   virtual void tick(MasterTempo* mt);
 
 private:

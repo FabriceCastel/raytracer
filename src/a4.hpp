@@ -71,7 +71,7 @@ private:
      int nextRow;
 };
 
-Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersection* col, Point3D eye, SceneNode* root, MasterTempo* mt);
+Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersection col, Point3D eye, SceneNode* root, MasterTempo* mt);
 
 
 #endif

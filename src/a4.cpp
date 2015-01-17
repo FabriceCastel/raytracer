@@ -63,32 +63,25 @@ void *renderNextStrip(void *params){
 
 			Ray ray = {pixel, v};
 
-			Intersection* col = root->intersect(ray, world, mt);
-			Intersection* initHit = NULL;
+			Intersection col = Intersection();
+			root->intersect(ray, col, world, mt);
+			Intersection initHit = Intersection();
 
-			if(col == NULL){
+			if(!col.isValid()){
 				rbuffer[rbufferindex++] = 0;
 				rbuffer[rbufferindex++] = 0;
 				rbuffer[rbufferindex++] = 0;
 			} else {
-				initHit = (Intersection*)malloc(sizeof(Intersection));
-				*initHit = Intersection(col->getPoint(), col->getNormal(), col->getMaterial());
-				initHit->setRefraction(col->isRefraction());
-				initHit->setRefAngle(col->getRefAngle());
-				if(col->hasTexture()){
-					initHit->setTexture(col->getTexture());
-					initHit->setTextureUV(col->getU(), col->getV());
-				}
+				initHit = col;
 
 				int curRefCount = 0;
-				while(col != NULL && col->isRefraction()){
-					Point3D point = col->getPoint();
-					Vector3D normal = col->getNormal();
+				while(col.isValid() && col.isRefraction()){
+					Point3D point = col.getPoint();
+					Vector3D normal = col.getNormal();
 					normal.normalize();
-					Vector3D refAngle = col->getRefAngle();
-					free(col);
+					Vector3D refAngle = col.getRefAngle();
 					Ray r = {point, refAngle};
-					col = root->intersect(r, world, mt);
+					root->intersect(r, col, world, mt);
 					rayWasRefracted = true;
 					curRefCount++;
 					if(curRefCount > MAX_REFRACTION_COUNT) break;
@@ -96,20 +89,19 @@ void *renderNextStrip(void *params){
 
 				Vector3D fc = Vector3D(1,1,1);
 
-				if(col != NULL) {
-					Material *mat = col->getMaterial();
+				if(col.isValid()) {
+					Material *mat = col.getMaterial();
 					Colour kd = mat->getKD();
 
 					fc = Vector3D(0,0,0);
 
 					fc = shade(fc, lights, ambient, col, eye, root, mt);
 					fc.cap(1.0);
-					free(col);
 				}
 
 
 				if(rayWasRefracted){
-					double opacityFactor = initHit->getNormal().dot(v);
+					double opacityFactor = initHit.getNormal().dot(v);
 					if(opacityFactor < 0) opacityFactor *= -1;
 
 					opacityFactor = 1 - opacityFactor;
@@ -118,7 +110,7 @@ void *renderNextStrip(void *params){
 					if(opacityFactor > 1) opacityFactor = 1;
 					
 					double transparancy = 0.9 * (1.0 - opacityFactor);
-					Colour glassKD = initHit->getMaterial()->getKD();
+					Colour glassKD = initHit.getMaterial()->getKD();
 					Vector3D glassDiff = Vector3D(glassKD.R(), glassKD.G(), glassKD.B());
 					Vector3D glassSpec = Vector3D(0.0, 0.0, 0.0);
 					glassDiff = shade(glassDiff, lights, ambient, initHit, eye, root, mt);
@@ -126,13 +118,13 @@ void *renderNextStrip(void *params){
 					//
 					// Hacky way of calculating ONLY the specular part (use black diffuse and white spec)
 					//
-					Intersection glassSpecI = (*initHit);
+					Intersection glassSpecI = initHit;
 					const Colour black = Colour(0.0, 0.0, 0.0);
 					const Colour white = Colour(1.0, 1.0, 1.0);
-					double shine = initHit->getMaterial()->getShininess();
+					double shine = initHit.getMaterial()->getShininess();
 					Material* onlySpec = (Material*) new PhongMaterial(black, white, shine);
 					glassSpecI.setMaterial(onlySpec);
-					glassSpec = shade(glassSpec, lights, ambient, &glassSpecI, eye, root, mt);
+					glassSpec = shade(glassSpec, lights, ambient, glassSpecI, eye, root, mt);
 					delete(onlySpec);
 					//
 					// </hack>
@@ -152,8 +144,6 @@ void *renderNextStrip(void *params){
 				rbuffer[rbufferindex++] = fc[2];
 
 			}
-			
-			free(initHit);
 		}
 		y = renderParams->getNextRow();
 	}
@@ -179,7 +169,7 @@ void render(// What to render
 	int framerate = 25;
 	const double FRAME_COUNT = 10000;//1165;//framerate * 71.7;
 	MasterTempo masterTempo = MasterTempo("../data/1.mid", 180.0, framerate, 1);
-	int SSAAFactor = 4;
+	int SSAAFactor = 1;
 	height *= SSAAFactor;
 	width *= SSAAFactor;
 
@@ -313,18 +303,18 @@ void render(// What to render
 
 
 
-Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersection* col, Point3D eye, SceneNode* root, MasterTempo* mt){
-	Material *mat = col->getMaterial();
+Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersection col, Point3D eye, SceneNode* root, MasterTempo* mt){
+	Material *mat = col.getMaterial();
 	Colour ks = mat->getKS();
 	Colour kd = mat->getKD();
-	if(col->hasTexture()){
-		Vector3D nkd = col->getTexture();
+	if(col.hasTexture()){
+		Vector3D nkd = col.getTexture();
 		kd = Colour(nkd[0], nkd[1], nkd[2]);
 	}
 	int shininess = (int)mat->getShininess();
 	
-	Point3D point = col->getPoint();
-	Vector3D normal = col->getNormal();
+	Point3D point = col.getPoint();
+	Vector3D normal = col.getNormal();
 	normal.normalize();
 
 	fc = Vector3D(ambient.R()*kd.R(), ambient.G()*kd.G(), ambient.B()*kd.B());
@@ -341,13 +331,11 @@ Vector3D shade(Vector3D fc, std::list<Light*> lights, Colour ambient, Intersecti
 		Vector3D pointToLight = lpos - point;
 		pointToLight.normalize();
 
-		Intersection* shadow;
+		Intersection shadow = Intersection();
 		
 		Ray r = {point2, lpos - point2};
-		shadow = root->intersect(r, Matrix4x4(), mt);
-		if(shadow != NULL){
-			free(shadow);
-		} else {
+		root->intersect(r, shadow, Matrix4x4(), mt);
+		if(!shadow.isValid()){
 			Colour lightColour = (*I)->colour;
 			Vector3D lcol = Vector3D(lightColour.R(), lightColour.G(), lightColour.B());
 	    	

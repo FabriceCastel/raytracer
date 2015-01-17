@@ -40,7 +40,7 @@ public:
     m_children.remove(child);
   }
 
-  virtual Intersection* intersect(Ray ray, Matrix4x4 trans, MasterTempo* mt);
+  virtual void intersect(Ray ray, Intersection &inter, Matrix4x4 trans, MasterTempo* mt);
   virtual void tick(MasterTempo* mt);
 
   // Callbacks to be implemented.
@@ -93,7 +93,7 @@ public:
                Primitive* primitive);
   virtual ~GeometryNode();
 
-  virtual Intersection* intersect(Ray ray, Matrix4x4 trans, MasterTempo* mt);
+  virtual void intersect(Ray ray, Intersection &inter, Matrix4x4 trans, MasterTempo* mt);
 
   const Material* get_material() const;
   Material* get_material();
@@ -127,7 +127,7 @@ protected:
 class ParticleSystem : public SceneNode {
 public:
   ParticleSystem(const std::string& name, Vector3D gravity, Point3D spawnZoneCorner, double spawnZoneSize, double spawnDensity);
-  virtual Intersection* intersect(Ray ray, Matrix4x4 trans, MasterTempo* mt);
+  virtual void intersect(Ray ray, Intersection &inter, Matrix4x4 trans, MasterTempo* mt);
   virtual void tick(MasterTempo* mt);
 
 private:
