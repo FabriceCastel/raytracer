@@ -1,6 +1,10 @@
 Fab's Raytracer
 ===============
 
+# January 17th - 6:50pm
+
+Fixed some memory leaks with a first rough pass in the intersection methods.
+
 # December 26th - 11:25am
 
 The deadline is long gone; I wound up scraping a glorious 93% with this project and a boatload of satisfaction at what I've been able to accomplish. The code in its current state is rather horrid and sloppy, so for the next little while I plan to refactor it. What comes next will probably be procedural shenanigans.
