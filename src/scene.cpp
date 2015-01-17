@@ -11,38 +11,26 @@ SceneNode::~SceneNode()
 {
 }
 
-Intersection* SceneNode::intersect(Ray ray, Matrix4x4 trans, MasterTempo* mt){
-  Intersection* col = NULL;
-  Intersection* tcol = NULL;
+void SceneNode::intersect(Ray ray, Intersection &inter, Matrix4x4 trans, MasterTempo* mt){
+  Intersection col = Intersection();
+  Intersection tcol = Intersection();
   for (ChildList::const_iterator iterator = m_children.begin(), end = m_children.end(); iterator != end; ++iterator) {
-    tcol = (*iterator)->intersect(ray, m_trans*trans, mt);
+    (*iterator)->intersect(ray, tcol, m_trans*trans, mt);
     
-    if(col == NULL) col = tcol;
-    else if(col != NULL && tcol != NULL){
+    if(!col.isValid()){
+      col = tcol;
+    } else if(tcol.isValid()){
       // compare both intersections and keep the closer one as col
-      Point3D pt = tcol->getPoint();
-      Point3D pc = col->getPoint();
+      Point3D pt = tcol.getPoint();
+      Point3D pc = col.getPoint();
       double ptn = (pt - ray.point).normalize();
       double pcn = (pc - ray.point).normalize();
 
-      if(ptn < pcn){
-      	col->setPoint(tcol->getPoint());
-      	col->setNormal(tcol->getNormal());
-      	col->setMaterial(tcol->getMaterial());
-        col->setRefraction(tcol->isRefraction());
-        if(tcol->isRefraction()) col->setRefAngle(tcol->getRefAngle());
-        if(tcol->hasTexture()){
-          col->setTexture(tcol->getTexture());
-          col->setTextureUV(tcol->getU(), tcol->getV());
-        } else {
-          col->clearTexture();
-        }
-      }
-
-      free(tcol);
+      if(ptn < pcn)
+      	col = tcol;
     }
   }
-  return col;
+  inter = col;
 }
 
 void SceneNode::tick(MasterTempo* mt){
@@ -119,33 +107,16 @@ void GeometryNode::tick(MasterTempo* mt){
   //}
 }
 
-Intersection* GeometryNode::intersect(Ray ray, Matrix4x4 trans, MasterTempo* mt){
-  // if(std::strcmp(m_name.c_str(), "wall") == 0){
-  //   if(mt->getNoteStatus(2)){
-  //     m_material->setKD(Colour(0.05,0.05,0.05));
-  //   } else {
-  //     m_material->setKD(Colour(0.5, 0.7, 0.5));
-  //   }
-  // }
-
-  Intersection* inter = m_primitive->getIntersection(ray, trans);
-
-  if(inter == NULL) return NULL;
-  
-
-  if(std::strcmp(m_name.c_str(), "s1") == 0){
-    inter->setRefraction(true);
-    Vector3D rf = refraction(1.6, inter->getNormal(), ray.point, inter->getPoint());
-    inter->setRefAngle(rf);
+void GeometryNode::intersect(Ray ray, Intersection &inter, Matrix4x4 trans, MasterTempo* mt){
+  m_primitive->getIntersection(ray, inter, trans);
+  if(inter.isValid()){
+    inter.setMaterial(m_material);
+    if(m_texture != NULL && (!hasMidiTrigger() || mt->getNoteStatus(getMidiTrigger()))){
+      double u = inter.getU();
+      double v = inter.getV();
+      inter.setTexture(m_texture->getUV(u, v));
+    }
   }
-  
-  inter->setMaterial(m_material);
-  if(m_texture != NULL && (!hasMidiTrigger() || mt->getNoteStatus(getMidiTrigger()))){
-    double u = inter->getU();
-    double v = inter->getV();
-    inter->setTexture(m_texture->getUV(u, v));
-  }
-  return inter;
 }
 
 
@@ -200,10 +171,10 @@ void ParticleSystem::tick(MasterTempo* mt){
   // }
 }
 
-Intersection* ParticleSystem::intersect(Ray ray, Matrix4x4 trans, MasterTempo* mt){
+void ParticleSystem::intersect(Ray ray, Intersection &inter, Matrix4x4 trans, MasterTempo* mt){
 
-  Intersection* col = NULL;
-  Intersection* tcol = NULL;
+  Intersection col = Intersection();
+  Intersection tcol = Intersection();
   int c = 0;
 
   std::list<Particle>::iterator I = particles.begin();
@@ -217,34 +188,28 @@ Intersection* ParticleSystem::intersect(Ray ray, Matrix4x4 trans, MasterTempo* m
 
     Point3D pos = (*I).getCurrentPosition();
     NonhierSphere particle = NonhierSphere(pos, rad);
-    tcol = particle.getIntersection(ray, trans);
+    particle.getIntersection(ray, tcol, trans);
 
     ++I;
     
-    if(col == NULL) col = tcol;
-    else if(col != NULL && tcol != NULL){
+    if(!col.isValid()) col = tcol;
+    else if(tcol.isValid()){
       // compare both intersections and keep the closer one as col
-      Point3D pt = tcol->getPoint();
-      Point3D pc = col->getPoint();
+      Point3D pt = tcol.getPoint();
+      Point3D pc = col.getPoint();
       double ptn = (pt - ray.point).normalize();
       double pcn = (pc - ray.point).normalize();
 
-      if(ptn < pcn){
-        col->setPoint(tcol->getPoint());
-        col->setNormal(tcol->getNormal());
-        col->setMaterial(tcol->getMaterial());
-        col->setRefraction(tcol->isRefraction());
-        if(tcol->isRefraction()) col->setRefAngle(tcol->getRefAngle());
-      }
+      if(ptn < pcn)
+        col = tcol;
 
-      free(tcol);
       c++;
     }
   }
 
-  if(col != NULL){
+  if(col.isValid()){
     PhongMaterial* mat = new PhongMaterial(Colour(1,1,1), Colour(1,1,1), 200.0);
-    col->setMaterial(mat);
+    col.setMaterial(mat);
   }
-  return col;
+  inter = col;
 }

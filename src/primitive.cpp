@@ -33,11 +33,11 @@ void Primitive::tick(MasterTempo* mt){
 
 NonhierTangleCube::~NonhierTangleCube(){}
 
-Intersection* Primitive::getIntersection(Ray ray, Matrix4x4 trans){
-  return NULL;
+void Primitive::getIntersection(Ray ray, Intersection &inter, Matrix4x4 trans){
+
 }
 
-Intersection* NonhierBox::getIntersection(Ray ray, Matrix4x4 trans){
+void NonhierBox::getIntersection(Ray ray, Intersection &inter, Matrix4x4 trans){
   //ray.point = trans*ray.point;//trans.invert() * ray.point;
   //ray.vector = trans*ray.vector;//trans.invert() * ray.vector;
 
@@ -120,14 +120,13 @@ Intersection* NonhierBox::getIntersection(Ray ray, Matrix4x4 trans){
   }
   
   if(t < 0.0)
-    return NULL;
+    return;
 
   Point3D hit = ray.point + t*ray.vector;
 
-  Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
-  *ans = Intersection(hit, normal, NULL);
-  ans->setTextureUV(u, v);
-  return ans;
+  //Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
+  inter = Intersection(hit, normal, NULL);
+  inter.setTextureUV(u, v);
 }
 
 double heightField(double lat, double lng){
@@ -205,13 +204,13 @@ Intersection* intersectHeightMap(Ray ray, Matrix4x4 trans, Point3D m_pos, double
   return NULL;
 }
 
-Intersection* NonhierSphere::getIntersection(Ray ray, Matrix4x4 trans){
+void NonhierSphere::getIntersection(Ray ray, Intersection &inter, Matrix4x4 trans){
   ray.vector.normalize(); // just in case
   Vector3D v = ray.point - m_pos;
 
   //return intersectHeightMap(ray.point, ray.vector, trans, m_pos, m_radius);
 
-  if((-1 * v).dot(ray.vector) <= m_radius) return NULL; // geometry is behind the ray
+  if((-1 * v).dot(ray.vector) <= m_radius) return; // geometry is behind the ray
  
   double a = ray.vector.dot(ray.vector);
   double b = 2*(ray.vector.dot(v));
@@ -225,17 +224,17 @@ Intersection* NonhierSphere::getIntersection(Ray ray, Matrix4x4 trans){
 
   //std::cout << "\nRoots: " << rootCount;
 
-  if(rootCount == 0) return NULL;
+  if(rootCount == 0) return;
 
-  Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
-  *ans = Intersection(Point3D(0.0, 0.0, 0.0), Vector3D(0.0, 0.0, 0.0), NULL);
+  //Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
+  inter = Intersection(Point3D(0.0, 0.0, 0.0), Vector3D(0.0, 0.0, 0.0), NULL);
   
 
   if(rootCount == 1 && roots[0] > 0){
     Point3D p = ray.point + roots[0]*ray.vector;
-    ans->setPoint(p);
-    ans->setNormal(p - m_pos);
-    return ans;
+    inter.setPoint(p);
+    inter.setNormal(p - m_pos);
+    return;
   }
 
   Point3D nray = Point3D(-ray.point[0], -ray.point[1], -ray.point[2]);
@@ -245,20 +244,20 @@ Intersection* NonhierSphere::getIntersection(Ray ray, Matrix4x4 trans){
   bp = Point3D(-1*bp[0], -1*bp[1], -1*bp[2]);
 
   double epsilon = 0.0001;
-  if(roots[0] < epsilon && roots[1] < epsilon) return NULL;
+  if(roots[0] < epsilon && roots[1] < epsilon) return;
 
   //std::cout << "\n0: " << roots[0] << "\n1: " << roots[1];
 
   if((roots[0] < roots[1] && roots[0] > 0) || roots[1] < 0.0001){
-    ans->setPoint(ap);
+    inter.setPoint(ap);
     Vector3D n = ap - m_pos;
     n.normalize();
-    ans->setNormal(n);
+    inter.setNormal(n);
   } else {
-    ans->setPoint(bp);
+    inter.setPoint(bp);
     Vector3D n = bp - m_pos;
     n.normalize();
-    ans->setNormal(n);
+    inter.setNormal(n);
   }
 
   //if(false) return ans; // IF THE OBJECT IS NOT TRANSPARENT
@@ -274,11 +273,10 @@ Intersection* NonhierSphere::getIntersection(Ray ray, Matrix4x4 trans){
 
   //std::cout << "\nOrigin: " << ray.point << "\nNormal: " << ans->getNormal() << "\nIntersection point: " << ans->getPoint() << "\nRefraction Angle: " << rf;
 
-  return ans;
 }
 
 
-Intersection* NonhierTangleCube::getIntersection(Ray ray, Matrix4x4 trans){
+void NonhierTangleCube::getIntersection(Ray ray, Intersection &inter, Matrix4x4 trans){
   ray.vector.normalize();
 
   //double scale = 1.0 / m_radius;  
@@ -305,7 +303,7 @@ Intersection* NonhierTangleCube::getIntersection(Ray ray, Matrix4x4 trans){
   a /= k; b /= k; c /= k; d /= k;
 
   int rootCount = quarticRoots(a, b, c, d, roots);
-  if(rootCount == 0) return NULL;
+  if(rootCount == 0) return;
 
 
   double t = roots[0];
@@ -315,7 +313,7 @@ Intersection* NonhierTangleCube::getIntersection(Ray ray, Matrix4x4 trans){
     }
   }
 
-  if(t <= 0) return NULL;
+  if(t <= 0) return;
 
   Point3D sPoint = ray.point + t*ray.vector;
   Vector3D sNormal = Vector3D(0,0,0);
@@ -327,14 +325,12 @@ Intersection* NonhierTangleCube::getIntersection(Ray ray, Matrix4x4 trans){
   if(sNormal.dot(ray.vector) > 0) sNormal = -1 * sNormal;
   sNormal.normalize();
 
-  Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
-  *ans = Intersection(sPoint, sNormal, NULL);
+  //Intersection *ans = (Intersection*)malloc(sizeof(Intersection));
+  inter = Intersection(sPoint, sNormal, NULL);
 
-  ans->setRefraction(true);
-  Vector3D rf = refraction(1.6, ans->getNormal(), ray.point, ans->getPoint());
-  ans->setRefAngle(rf);
-
-  return ans;
+  inter.setRefraction(true);
+  Vector3D rf = refraction(1.6, inter.getNormal(), ray.point, inter.getPoint());
+  inter.setRefAngle(rf);
 }
 
 void NonhierTangleCube::tick(MasterTempo* mt){
